@@ -42,4 +42,39 @@ Stores ratings and reviews given by one user to another.
 | ReviewedAccount | integer   | REFERENCES Account(ID)     |
 | ReviewerAccount | integer   | REFERENCES Account(ID)     |
 | Rating         | integer    |                            |
-| **Primary Key**|    
+| **Primary Key**|            | (ReviewedAccount, ReviewerAccount) |
+
+---
+
+## Trade Table
+Stores information about trades between users.
+
+| Column         | Type       | Constraints                |
+|----------------|------------|----------------------------|
+| Account1       | integer    | REFERENCES Account(ID)     |
+| Account2       | integer    | REFERENCES Account(ID)     |
+| **Primary Key**|            | (Account1, Account2)       |
+
+---
+
+## LikeSave Table
+Stores items liked or saved by users.
+
+| Column         | Type       | Constraints                |
+|----------------|------------|----------------------------|
+| ItemID         | integer    | REFERENCES Items(ItemID)   |
+| Account        | integer    | REFERENCES Account(ID)     |
+| **Primary Key**|            | (ItemID, Account)          |
+
+---
+
+## ChatMessage Table
+Stores messages exchanged between users.
+
+| Column         | Type       | Constraints                |
+|----------------|------------|----------------------------|
+| Account1       | integer    | REFERENCES Account(ID)     |
+| Account2       | integer    | REFERENCES Account(ID)     |
+| Content        | text       |                            |
+| TimeSent       | TIMESTAMP  | DEFAULT CURRENT_TIMESTAMP  |
+| **Primary Key**|            | (Account1, Account2, TimeSent) |
