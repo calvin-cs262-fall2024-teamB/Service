@@ -87,7 +87,6 @@ INSERT INTO Interests (Account, Interest) VALUES
 (3, 'Reading'),
 (3, 'History');
 
--- Add sample records for Rating/Review table
 INSERT INTO RatingReview (ReviewedAccount, ReviewerAccount, Rating) VALUES 
 (1, 2, 5),
 (2, 3, 4),
@@ -95,18 +94,15 @@ INSERT INTO RatingReview (ReviewedAccount, ReviewerAccount, Rating) VALUES
 (2, 1, 4),
 (3, 1, 3);
 
--- Add sample records for Trade table
 INSERT INTO Trade (Account1, Account2) VALUES 
 (1, 2),
 (2, 3);
 
--- Add sample records for Like/Save table
 INSERT INTO LikeSave (ItemID, Account) VALUES 
 (1, 1),
 (2, 2),
 (3, 3);
 
--- Add sample records for ChatMessage table
 INSERT INTO ChatMessage (Account1, Account2, Content) VALUES 
 (1, 2, 'Hello!'),
 (2, 1, 'Hi there!'),
