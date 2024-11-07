@@ -107,3 +107,84 @@ INSERT INTO ChatMessage (Account1, Account2, Content) VALUES
 (1, 2, 'Hello!'),
 (2, 1, 'Hi there!'),
 (3, 1, 'What up?');
+
+
+-- List all items and their owners' email addresses:
+
+SELECT i.ItemID, i.Description, a.emailAddress 
+FROM Items i
+JOIN Account a ON i.OwnerAccount = a.ID;
+
+
+-- Find all interests for each account, showing the account's name and their interests:
+
+SELECT a.name, i.Interest 
+FROM Interests i
+JOIN Account a ON i.Account = a.ID
+ORDER BY a.name;
+
+
+-- Retrieve all ratings and reviews, including reviewer and reviewed account names, along with their ratings:
+
+SELECT a1.name AS Reviewer, a2.name AS Reviewed, rr.Rating
+FROM RatingReview rr
+JOIN Account a1 ON rr.ReviewerAccount = a1.ID
+JOIN Account a2 ON rr.ReviewedAccount = a2.ID;
+
+
+-- Display all trades, showing the names of both accounts involved in each trade:
+
+SELECT a1.name AS Account1, a2.name AS Account2 
+FROM Trade t
+JOIN Account a1 ON t.Account1 = a1.ID
+JOIN Account a2 ON t.Account2 = a2.ID;
+
+
+-- Find all items liked or saved by each account, showing the account name and item description:
+
+SELECT a.name AS AccountName, i.Description AS ItemLiked 
+FROM LikeSave ls
+JOIN Account a ON ls.Account = a.ID
+JOIN Items i ON ls.ItemID = i.ItemID;
+
+
+-- List all messages between accounts, including the sender, receiver, message content, and time sent:
+
+SELECT a1.name AS Sender, a2.name AS Receiver, cm.Content, cm.TimeSent 
+FROM ChatMessage cm
+JOIN Account a1 ON cm.Account1 = a1.ID
+JOIN Account a2 ON cm.Account2 = a2.ID
+ORDER BY cm.TimeSent;
+
+
+-- Get the average rating received by each account, displaying the account name and their average rating:
+
+SELECT a.name, AVG(rr.Rating) AS AverageRating 
+FROM RatingReview rr
+JOIN Account a ON rr.ReviewedAccount = a.ID
+GROUP BY a.name;
+
+
+-- Identify accounts that have received ratings of 4 or higher, showing their names and the high ratings received:
+
+SELECT a.name, rr.Rating 
+FROM RatingReview rr
+JOIN Account a ON rr.ReviewedAccount = a.ID
+WHERE rr.Rating >= 4;
+
+
+-- List all items owned by accounts with the interest in 'Cycling', showing the account name and item description:
+
+SELECT a.name, i.Description 
+FROM Items i
+JOIN Account a ON i.OwnerAccount = a.ID
+JOIN Interests it ON a.ID = it.Account
+WHERE it.Interest = 'Cycling';
+
+
+-- Find the number of items each account has liked or saved, displaying the account name and the count of liked items:
+
+SELECT a.name, COUNT(ls.ItemID) AS ItemsLiked
+FROM LikeSave ls
+JOIN Account a ON ls.Account = a.ID
+GROUP BY a.name;
