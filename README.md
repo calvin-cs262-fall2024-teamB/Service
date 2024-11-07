@@ -1,5 +1,10 @@
 # Service
 App service repo. More details can be found [here](https://github.com/calvin-cs262-fall2024-teamB/Project)
+Domain: bombastic-service-adeka8bebuhphycn.canadacentral-01.azurewebsites.net
+
+- login authentication: /login              takes in the email and (...plaintext) password from the json body 
+- Market item fetching: /market/:id         //id of account
+- User Item fetching: /items/:id            //id of account
 
 # Database Schema
 
