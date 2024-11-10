@@ -14,6 +14,7 @@
 // Set up the database connection.
 
 const pgp = require('pg-promise')();
+const bcrypt = require('bcrypt'); // Add bcrypt for password hashing
 
 // Gets the necessary info to access the database from the Azure app service
 // Prevents sensitive data from being put on Github
@@ -40,6 +41,7 @@ router.get('/login', authenticateLogin);
 router.get('/market/:id', readMarket); //id of account
 router.put('/items/:id', readAccountItems); //id of account
 
+
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
@@ -54,25 +56,28 @@ function returnDataOr404(res, data) {
 }
 
 // Checks if the given email and password are valid for login
-// TODO: Implement security (plain text passwords????)
-function authenticateLogin(req, res, next) {
-    const { email, password } = req.body; // Extract email and password from request body  
-    try {
-      // Finds the user in the database by email
-      const user = db.oneOrNone(`SELECT * FROM Account WHERE emailAddress = ${email}`);  
-      if (!user) {
-        // User wasn't found, send a 404 response
-        return res.status(404).json({ message: 'User not found' });
-      }  else if (user.password != password) {
-        // Password is incorrect, send a 401 Unauthorized response
-        return res.status(401).json({ message: 'Invalid email or password' });
-      }  
-      // Send the success message to the client
-      res.status(200).json({ message: 'Login successful' });
-    } catch (err) {
-      next(err);
+// Checks if the given email and password are valid for login
+async function authenticateLogin(req, res, next) {
+  const { email, password } = req.body;  
+  try {
+    // Finds the user in the database by email
+    const user = await db.oneOrNone('SELECT * FROM Account WHERE emailAddress = $1', [email]);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Compare the provided password with the hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({ message: 'Login successful' });
+  } catch (err) {
+    console.error('Error in authenticateLogin:', err);
+    next(err);
   }
+}
   
 // reads the open market from the perspective of a user (all items that aren't theirs)
 function readMarket(req, res, next) {
@@ -95,6 +100,7 @@ function readAccountItems(req, res, next) {
         next(err);
       });
   }
+
 
 function readHelloMessage(res) {
   res.send('MWAHAHAHAHA THE APP SERVICE WORKS!!!');
