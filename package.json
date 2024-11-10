@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "App service repo. More details can be found [here](https://github.com/calvin-cs262-fall2024-teamB/Project)\r Domain: bombastic-service-adeka8bebuhphycn.canadacentral-01.azurewebsites.net",
   "main": "bombastic-service.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC"
