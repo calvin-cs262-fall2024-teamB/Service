@@ -10,11 +10,13 @@
  * @date: Fall, 2024
  * 
  */
+// require('dotenv').config(); //Sets up environment variables, COMMENT OUT WHEN PUSHING
+
 
 // Set up the database connection.
 
+
 const pgp = require('pg-promise')();
-const bcrypt = require('bcrypt'); // Add bcrypt for password hashing
 
 // Gets the necessary info to access the database from the Azure app service
 // Prevents sensitive data from being put on Github
@@ -57,25 +59,18 @@ function returnDataOr404(res, data) {
 }
 
 // Checks if the given email and password are valid for login
-// Checks if the given email and password are valid for login
 async function authenticateLogin(req, res, next) {
-  const { email, password } = req.body;  
+  const { email } = req.body;  
   try {
     // Finds the user in the database by email
     const user = await db.oneOrNone('SELECT * FROM Account WHERE emailAddress = $1', [email]);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Compare the provided password with the hashed password
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
 
     res.status(200).json({ message: 'Login successful' });
   } catch (err) {
-    console.error('Error in authenticateLogin:', err);
+    console.error('Error in login:', err);
     next(err);
   }
 }
@@ -103,6 +98,6 @@ function readAccountItems(req, res, next) {
   }
 
 
-function readHelloMessage(res) {
+function readHelloMessage(req, res) {
   res.send('MWAHAHAHAHA THE APP SERVICE WORKS!!!');
 }
