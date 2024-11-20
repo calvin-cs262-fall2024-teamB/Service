@@ -14,7 +14,7 @@
 // Set up the database connection.
 
 const pgp = require('pg-promise')();
-//const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 
 
 // Database connection
@@ -30,7 +30,7 @@ const db = pgp({
 // Server setup
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 const router = express.Router();
 app.use(express.json()); // Apply middleware to parse JSON globally
 
