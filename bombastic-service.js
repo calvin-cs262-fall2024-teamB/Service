@@ -15,7 +15,7 @@
 
 const pgp = require('pg-promise')();
 //const bcrypt = require('bcrypt');
-//const express = require('express');
+
 
 // Database connection
 const db = pgp({
@@ -28,6 +28,7 @@ const db = pgp({
 });
 
 // Server setup
+const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
 const router = express.Router();
@@ -41,14 +42,6 @@ app.put('/items/:id', readAccountItems);
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
-
-// Fallback route for undefined paths
-app.use((req, res) => {
-  res.status(404).send({ message: 'Resource Not Found' });
-});
-
-// Start the server
-
 
 // CRUD Operations
 function returnDataOr404(res, data) {
