@@ -44,11 +44,15 @@ router.put('/items/:id', readAccountItems); //id of account
 
 
 app.use(router);
-app.listen(port, () => console.log(`Listening on port ${port}`));
 
+// Fallback route for undefined paths
 app.use((req, res) => {
   res.status(404).send({ message: 'Resource Not Found' });
 });
+
+// Start the server
+app.listen(port, () => console.log(`Listening on port ${port}`));
+
 
 // Implement the CRUD operations.
 
