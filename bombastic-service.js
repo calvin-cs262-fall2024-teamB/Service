@@ -24,13 +24,13 @@ const db = pgp({
   database: process.env.DB_DATABASE,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: false, }
 });
 
 // Server setup
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 const router = express.Router();
 app.use(express.json()); // Apply middleware to parse JSON globally
 
