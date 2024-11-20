@@ -14,8 +14,8 @@
 // Set up the database connection.
 
 const pgp = require('pg-promise')();
-const bcrypt = require('bcrypt');
-const express = require('express');
+//const bcrypt = require('bcrypt');
+//const express = require('express');
 
 // Database connection
 const db = pgp({
@@ -30,7 +30,7 @@ const db = pgp({
 // Server setup
 const app = express();
 const port = process.env.PORT || 3000;
-
+const router = express.Router();
 app.use(express.json()); // Apply middleware to parse JSON globally
 
 // Routes
@@ -39,19 +39,16 @@ app.post('/login', authenticateLogin); // Changed to POST
 app.get('/market/:id', readMarket);
 app.put('/items/:id', readAccountItems);
 
+app.use(router);
+app.listen(port, () => console.log(`Listening on port ${port}`));
+
 // Fallback route for undefined paths
 app.use((req, res) => {
   res.status(404).send({ message: 'Resource Not Found' });
 });
 
-// Error-handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).send({ message: 'Internal Server Error', error: err.message });
-});
-
 // Start the server
-app.listen(port, () => console.log(`Listening on port ${port}`));
+
 
 // CRUD Operations
 function returnDataOr404(res, data) {
