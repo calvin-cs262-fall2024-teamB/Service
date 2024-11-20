@@ -46,6 +46,10 @@ router.put('/items/:id', readAccountItems); //id of account
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
+app.use((req, res) => {
+  res.status(404).send({ message: 'Resource Not Found' });
+});
+
 // Implement the CRUD operations.
 
 function returnDataOr404(res, data) {
@@ -103,6 +107,9 @@ function readAccountItems(req, res, next) {
   }
 
 
-function readHelloMessage(res) {
+function readHelloMessage(req, res, next) {
   res.send('MWAHAHAHAHA THE APP SERVICE WORKS!!!');
 }
+
+
+
