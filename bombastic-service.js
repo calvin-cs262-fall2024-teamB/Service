@@ -14,106 +14,95 @@
 // Set up the database connection.
 
 const pgp = require('pg-promise')();
-const bcrypt = require('bcrypt'); // Add bcrypt for password hashing
+const bcrypt = require('bcrypt');
+const express = require('express');
 
-// Gets the necessary info to access the database from the Azure app service
-// Prevents sensitive data from being put on Github
+// Database connection
 const db = pgp({
   host: process.env.DB_SERVER,
   port: process.env.DB_PORT,
   database: process.env.DB_DATABASE,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: {rejectUnauthorized: false,},
+  ssl: { rejectUnauthorized: false },
 });
 
-// Configure the server and its routes.
-
-const express = require('express');
-
+// Server setup
 const app = express();
 const port = process.env.PORT || 3000;
-const router = express.Router();
-router.use(express.json());
 
-// Specifies the routes available
-router.get('/', readHelloMessage);
-router.get('/login', authenticateLogin);
-router.get('/market/:id', readMarket); //id of account
-router.put('/items/:id', readAccountItems); //id of account
+app.use(express.json()); // Apply middleware to parse JSON globally
 
-
-app.use(router);
+// Routes
+app.get('/', readHelloMessage);
+app.post('/login', authenticateLogin); // Changed to POST
+app.get('/market/:id', readMarket);
+app.put('/items/:id', readAccountItems);
 
 // Fallback route for undefined paths
 app.use((req, res) => {
   res.status(404).send({ message: 'Resource Not Found' });
 });
 
+// Error-handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).send({ message: 'Internal Server Error', error: err.message });
+});
+
 // Start the server
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
-
-// Implement the CRUD operations.
-
+// CRUD Operations
 function returnDataOr404(res, data) {
-  if (data == null) {
+  if (!data || data.length === 0) {
     res.sendStatus(404);
   } else {
     res.send(data);
   }
 }
 
-// Checks if the given email and password are valid for login
-// Checks if the given email and password are valid for login
 async function authenticateLogin(req, res, next) {
-  const { email, password } = req.body;  
+  const { email, password } = req.body;
   try {
-    // Finds the user in the database by email
     const user = await db.oneOrNone('SELECT * FROM Account WHERE emailAddress = $1', [email]);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Compare the provided password with the hashed password
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-
     res.status(200).json({ message: 'Login successful' });
   } catch (err) {
-    console.error('Error in authenticateLogin:', err);
     next(err);
   }
 }
-  
-// reads the open market from the perspective of a user (all items that aren't theirs)
+
 function readMarket(req, res, next) {
-    db.many('SELECT * FROM Items WHERE OwnerAccount!=${id}', req.params)
-      .then((data) => {
-        returnDataOr404(res, data);
-      })
-      .catch((err) => {
-        next(err);
-      });
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).send({ message: 'Invalid or missing ID' });
   }
+  db.any('SELECT * FROM Items WHERE OwnerAccount != ${id}', { id })
+    .then((data) => returnDataOr404(res, data))
+    .catch(next);
+}
 
-// reads the items of a particular user
 function readAccountItems(req, res, next) {
-    db.many('SELECT * FROM Items WHERE OwnerAccount=${id}', req.params)
-      .then((data) => {
-        returnDataOr404(res, data);
-      })
-      .catch((err) => {
-        next(err);
-      });
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).send({ message: 'Invalid or missing ID' });
   }
+  db.any('SELECT * FROM Items WHERE OwnerAccount = ${id}', { id })
+    .then((data) => returnDataOr404(res, data))
+    .catch(next);
+}
 
-
-function readHelloMessage(req, res, next) {
+function readHelloMessage(req, res) {
   res.send('MWAHAHAHAHA THE APP SERVICE WORKS!!!');
 }
+
 
 
 
