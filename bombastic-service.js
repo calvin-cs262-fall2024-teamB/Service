@@ -13,7 +13,6 @@
 // For local testing
 require('dotenv').config();
 
-
 // Set up the database connection.
 
 const pgp = require('pg-promise')();
