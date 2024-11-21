@@ -86,6 +86,10 @@ CREATE TABLE LikeSave (
 -- Allow Accounts to select data from the tables.
 GRANT SELECT ON Account TO PUBLIC;
 GRANT SELECT ON Item TO PUBLIC;
+GRANT SELECT ON Tag TO PUBLIC;
+GRANT SELECT ON ItemLookingFor TO PUBLIC;
+GRANT SELECT ON ItemTag TO PUBLIC;
+GRANT SELECT ON AccountTag TO PUBLIC;
 GRANT SELECT ON RatingReview TO PUBLIC;
 GRANT SELECT ON Trade TO PUBLIC;
 GRANT SELECT ON LikeSave TO PUBLIC;
@@ -93,88 +97,66 @@ GRANT SELECT ON ChatMessage TO PUBLIC;
 
 
 -- SAMPLE DATA ----------------------------------------------------------------
--- Account table sample data
-INSERT INTO Account (ID, EmailAddress, Name, Password) VALUES 
-(4, 'alice@gmail.com', 'Alice Wonderland', 'alice123'),
-(5, 'bob@gmail.com', 'Bob Builder', 'bobthebuilder'),
-(6, 'eve@gmail.com', 'Eve Lution', 'evolution');
+-- Insert data into Account
+INSERT INTO Account (ID, EmailAddress, Name, Password) VALUES
+(1, 'alice@example.com', 'Alice Smith', 'password123'),
+(2, 'bob@example.com', 'Bob Johnson', 'password456'),
+(3, 'charlie@example.com', 'Charlie Brown', 'password789');
 
--- Item table sample data
-INSERT INTO Item (ID, OwnerAccount, Name, Description, Location) VALUES 
-(4, 1, 'Guitar', 'An acoustic guitar with great sound quality.', '(12, 20)'),
-(5, 2, 'Laptop', 'High-performance gaming laptop.', '(14, 22)'),
-(6, 3, 'Tent', 'A 4-person camping tent.', '(16, 30)'),
-(7, 4, 'Desk Chair', 'Ergonomic office chair.', '(20, 25)'),
-(8, 5, 'Cookware Set', 'Stainless steel pots and pans.', '(18, 24)'),
-(9, 6, 'Painting', 'A beautiful landscape painting.', '(22, 28)');
-
--- Tag table sample data
-INSERT INTO Tag (ID, Name) VALUES 
+-- Insert data into Tag
+INSERT INTO Tag (ID, Name) VALUES
 (1, 'Electronics'),
 (2, 'Furniture'),
-(3, 'Music'),
-(4, 'Sports'),
-(5, 'Books'),
-(6, 'Art'),
-(7, 'Outdoor');
+(3, 'Books'),
+(4, 'Wanted'),
+(5, 'Free');
 
--- AccountTag table sample data
-INSERT INTO AccountTag (AccountID, TagID) VALUES 
-(1, 3), -- Account 1 is interested in Music
-(1, 5), -- Account 1 is interested in Books
-(2, 4), -- Account 2 is interested in Sports
-(3, 7), -- Account 3 is interested in Outdoor activities
-(4, 2), -- Account 4 is interested in Furniture
-(5, 6), -- Account 5 is interested in Art
-(6, 1); -- Account 6 is interested in Electronics
+-- Insert data into AccountTag
+INSERT INTO AccountTag (AccountID, TagID) VALUES
+(1, 1),  -- Alice is associated with 'Electronics'
+(2, 2),  -- Bob is associated with 'Furniture'
+(3, 3),  -- Charlie is associated with 'Books'
+(1, 4);  -- Alice is also associated with 'Wanted'
 
--- ItemTag table sample data
-INSERT INTO ItemTag (ItemID, TagID) VALUES 
-(4, 3), -- Guitar tagged as Music
-(5, 1), -- Laptop tagged as Electronics
-(6, 7), -- Tent tagged as Outdoor
-(7, 2), -- Desk Chair tagged as Furniture
-(8, 4), -- Cookware Set tagged as Sports (used for outdoor cooking)
-(9, 6); -- Painting tagged as Art
+-- Insert data into Item
+INSERT INTO Item (ID, OwnerAccount, Name, Description, Location, DatePosted) VALUES
+(1, 1, 'Laptop', 'A used laptop in good condition', '(12.34, 56.78)', '2024-11-01 10:00:00'),
+(2, 2, 'Sofa', 'A comfortable 3-seater sofa', '(22.34, 45.67)', '2024-11-02 11:00:00'),
+(3, 3, 'Book: Programming 101', 'A beginner programming book', '(33.34, 23.45)', '2024-11-03 12:00:00');
 
--- ItemLookingFor table sample data
-INSERT INTO ItemLookingFor (ItemID, LookingForID) VALUES 
-(4, 1), -- Guitar owner is looking for Electronics
-(5, 7), -- Laptop owner is looking for Outdoor gear
-(6, 3), -- Tent owner is looking for Music instruments
-(7, 6), -- Desk Chair owner is looking for Art
-(8, 5), -- Cookware Set owner is looking for Books
-(9, 4); -- Painting owner is looking for Sports equipment
+-- Insert data into ItemTag
+INSERT INTO ItemTag (ItemID, TagID) VALUES
+(1, 1),  -- Laptop tagged as 'Electronics'
+(2, 2),  -- Sofa tagged as 'Furniture'
+(3, 3);  -- Book tagged as 'Books'
 
--- Trade table sample data
-INSERT INTO Trade (ID, Account1, Account2, Accepted) VALUES 
-(3, 4, 1, TRUE),  -- Alice traded with Account One
-(4, 5, 2, FALSE), -- Bob attempted a trade with The King, but it was declined
-(5, 6, 3, TRUE);  -- Eve successfully traded with Dogbreath
+-- Insert data into ItemLookingFor
+INSERT INTO ItemLookingFor (ItemID, LookingForID) VALUES
+(1, 4),  -- Laptop is looking for 'Wanted'
+(2, 5);  -- Sofa is looking for 'Free'
 
--- ChatMessage table sample data
-INSERT INTO ChatMessage (Account1, Account2, Content) VALUES 
-(4, 5, 'Hi Bob, interested in a trade?'),
-(5, 4, 'Hey Alice, yes I am!'),
-(6, 3, 'Hello, is the tent still available?'),
-(3, 6, 'Yes, it is. Let me know what you can offer.');
+-- Insert data into Trade
+INSERT INTO Trade (ID, Account1, Account2, Accepted) VALUES
+(1, 1, 2, TRUE),  -- Alice and Bob made a trade, accepted
+(2, 3, 1, FALSE);  -- Charlie and Alice made a trade, not accepted
 
--- RatingReview table sample data
-INSERT INTO RatingReview (ReviewedAccount, ReviewerAccount, Rating) VALUES 
-(4, 5, 5), -- Alice received a 5-star rating from Bob
-(5, 4, 4), -- Bob received a 4-star rating from Alice
-(6, 3, 3), -- Eve got a 3-star rating from Dogbreath
-(3, 6, 5), -- Dogbreath gave a 5-star rating to Eve
-(2, 1, 4); -- The King received a 4-star rating from Account One
+-- Insert data into ChatMessage
+INSERT INTO ChatMessage (Account1, Account2, Content, TimeSent) VALUES
+(1, 2, 'Is the sofa still available?', '2024-11-02 12:00:00'),
+(2, 1, 'Yes, it is! Let me know if you are interested.', '2024-11-02 13:00:00'),
+(3, 1, 'Can I ask about the laptop?', '2024-11-01 14:00:00');
 
--- LikeSave table sample data
-INSERT INTO LikeSave (ItemID, AccountID) VALUES 
-(4, 1), -- Account One liked Guitar
-(5, 2), -- The King liked Laptop
-(6, 3), -- Dogbreath liked Tent
-(7, 4), -- Alice liked Desk Chair
-(8, 5), -- Bob liked Cookware Set
-(9, 6); -- Eve liked Painting
+-- Insert data into RatingReview
+INSERT INTO RatingReview (ReviewedAccount, ReviewerAccount, Rating) VALUES
+(1, 2, 4),  -- Bob rates Alice 4/5
+(2, 1, 5),  -- Alice rates Bob 5/5
+(3, 1, 3);  -- Alice rates Charlie 3/5
+
+-- Insert data into LikeSave
+INSERT INTO LikeSave (ItemID, AccountID) VALUES
+(1, 2),  -- Bob likes Alice's laptop
+(2, 3),  -- Charlie likes Bob's sofa
+(3, 1);  -- Alice likes Charlie's book
 
 
 -- -- List all items and their owners' email addresses:
