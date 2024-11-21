@@ -76,7 +76,7 @@ function readMarket(req, res, next) {
   if (!id) {
     return res.status(400).send({ message: 'Invalid or missing ID' });
   }
-  db.any('SELECT * FROM Items WHERE OwnerAccount != ${id}', { id })
+  db.any('SELECT * FROM Item WHERE OwnerAccount != ${id}', { id })
     .then((data) => returnDataOr404(res, data))
     .catch(next);
 }
@@ -86,7 +86,7 @@ function readAccountItems(req, res, next) {
   if (!id) {
     return res.status(400).send({ message: 'Invalid or missing ID' });
   }
-  db.any('SELECT * FROM Items WHERE OwnerAccount = ${id}', { id })
+  db.any('SELECT * FROM Item WHERE OwnerAccount = ${id}', { id })
     .then((data) => returnDataOr404(res, data))
     .catch(next);
 }

@@ -7,8 +7,11 @@ DROP TABLE IF EXISTS ChatMessage;
 DROP TABLE IF EXISTS LikeSave;
 DROP TABLE IF EXISTS Trade;
 DROP TABLE IF EXISTS RatingReview;
-DROP TABLE IF EXISTS Interests;
-DROP TABLE IF EXISTS Items;
+DROP TABLE IF EXISTS AccountTag;
+DROP TABLE IF EXISTS ItemTag;
+DROP TABLE IF EXISTS ItemLookingFor;
+DROP TABLE IF EXISTS Tag;
+DROP TABLE IF EXISTS Item;
 DROP TABLE IF EXISTS Account;
 
 CREATE TABLE Account (
@@ -28,7 +31,6 @@ CREATE TABLE Item (
 );
 
 -- TAG SECTION -------------------------------------------------------------
--- Linked to Accounts (their interests), Items (their tags and lookingFor)
 CREATE TABLE Tag (
     ID integer PRIMARY KEY,
     Name varchar(15)
@@ -42,22 +44,22 @@ CREATE TABLE AccountTag (
 
 CREATE TABLE ItemTag (
     ItemID integer REFERENCES Item(ID),
-    TagID integer REFERENCES Tag(ID)
-    PRIMARY Key (ItemID, TagID)
+    TagID integer REFERENCES Tag(ID),
+    PRIMARY KEY (ItemID, TagID)
 );
 
 CREATE TABLE ItemLookingFor (
     ItemID integer REFERENCES Item(ID),
-    LookingForID integer REFERENCES Tag(ID)
-    PRIMARY Key (ItemID, LookingForID)
+    LookingForID integer REFERENCES Tag(ID),
+    PRIMARY KEY (ItemID, LookingForID)
 );
 
 -- TRADE SECTION -------------------------------------------------------------
 CREATE TABLE Trade (
-    ID integer PRIMARY KEY, --Allows for multiple trades between two users
-    Account1 integer REFERENCES Account(ID), --Initiator
+    ID integer PRIMARY KEY,
+    Account1 integer REFERENCES Account(ID),
     Account2 integer REFERENCES Account(ID),
-    Accepted boolean,  --Accepted by Account2
+    Accepted boolean
 );
 
 CREATE TABLE ChatMessage (
@@ -76,61 +78,103 @@ CREATE TABLE RatingReview (
 );
 
 CREATE TABLE LikeSave (
-    ItemID integer REFERENCES Items(ID),
+    ItemID integer REFERENCES Item(ID),
     AccountID integer REFERENCES Account(ID),
-    PRIMARY KEY (ItemID, Account)
+    PRIMARY KEY (ItemID, AccountID)
 );
 
 -- Allow Accounts to select data from the tables.
 GRANT SELECT ON Account TO PUBLIC;
-GRANT SELECT ON Items TO PUBLIC;
-GRANT SELECT ON Interests TO PUBLIC;
+GRANT SELECT ON Item TO PUBLIC;
 GRANT SELECT ON RatingReview TO PUBLIC;
 GRANT SELECT ON Trade TO PUBLIC;
 GRANT SELECT ON LikeSave TO PUBLIC;
 GRANT SELECT ON ChatMessage TO PUBLIC;
 
-INSERT INTO Account (ID, emailAddress, name, password) VALUES 
-(1, 'me@calvin.edu', 'Account One', 'password123'),
-(2, 'king@gmail.com', 'The King', 'kingpass'),
-(3, 'dog@gmail.com', 'Dogbreath', 'dogpass');
 
-INSERT INTO Items (ItemID, OwnerAccount, Description) VALUES 
-(1, 1, 'Vintage camera'),
-(2, 2, 'Mountain bike'),
-(3, 3, 'Old books collection');
+-- SAMPLE DATA ----------------------------------------------------------------
+-- Account table sample data
+INSERT INTO Account (ID, EmailAddress, Name, Password) VALUES 
+(4, 'alice@gmail.com', 'Alice Wonderland', 'alice123'),
+(5, 'bob@gmail.com', 'Bob Builder', 'bobthebuilder'),
+(6, 'eve@gmail.com', 'Eve Lution', 'evolution');
 
--- Add sample records for Interests table
-INSERT INTO Interests (Account, Interest) VALUES 
+-- Item table sample data
+INSERT INTO Item (ID, OwnerAccount, Name, Description, Location) VALUES 
+(4, 1, 'Guitar', 'An acoustic guitar with great sound quality.', '(12, 20)'),
+(5, 2, 'Laptop', 'High-performance gaming laptop.', '(14, 22)'),
+(6, 3, 'Tent', 'A 4-person camping tent.', '(16, 30)'),
+(7, 4, 'Desk Chair', 'Ergonomic office chair.', '(20, 25)'),
+(8, 5, 'Cookware Set', 'Stainless steel pots and pans.', '(18, 24)'),
+(9, 6, 'Painting', 'A beautiful landscape painting.', '(22, 28)');
+
+-- Tag table sample data
+INSERT INTO Tag (ID, Name) VALUES 
 (1, 'Electronics'),
-(1, 'Photography'),
-(1, 'Travel'),
 (2, 'Furniture'),
-(2, 'Cycling'),
-(3, 'Clothing'),
-(3, 'Reading'),
-(3, 'History');
+(3, 'Music'),
+(4, 'Sports'),
+(5, 'Books'),
+(6, 'Art'),
+(7, 'Outdoor');
 
-INSERT INTO RatingReview (ReviewedAccount, ReviewerAccount, Rating) VALUES 
-(1, 2, 5),
-(2, 3, 4),
-(1, 3, 3),
-(2, 1, 4),
-(3, 1, 3);
+-- AccountTag table sample data
+INSERT INTO AccountTag (AccountID, TagID) VALUES 
+(1, 3), -- Account 1 is interested in Music
+(1, 5), -- Account 1 is interested in Books
+(2, 4), -- Account 2 is interested in Sports
+(3, 7), -- Account 3 is interested in Outdoor activities
+(4, 2), -- Account 4 is interested in Furniture
+(5, 6), -- Account 5 is interested in Art
+(6, 1); -- Account 6 is interested in Electronics
 
-INSERT INTO Trade (Account1, Account2) VALUES 
-(1, 2),
-(2, 3);
+-- ItemTag table sample data
+INSERT INTO ItemTag (ItemID, TagID) VALUES 
+(4, 3), -- Guitar tagged as Music
+(5, 1), -- Laptop tagged as Electronics
+(6, 7), -- Tent tagged as Outdoor
+(7, 2), -- Desk Chair tagged as Furniture
+(8, 4), -- Cookware Set tagged as Sports (used for outdoor cooking)
+(9, 6); -- Painting tagged as Art
 
-INSERT INTO LikeSave (ItemID, Account) VALUES 
-(1, 1),
-(2, 2),
-(3, 3);
+-- ItemLookingFor table sample data
+INSERT INTO ItemLookingFor (ItemID, LookingForID) VALUES 
+(4, 1), -- Guitar owner is looking for Electronics
+(5, 7), -- Laptop owner is looking for Outdoor gear
+(6, 3), -- Tent owner is looking for Music instruments
+(7, 6), -- Desk Chair owner is looking for Art
+(8, 5), -- Cookware Set owner is looking for Books
+(9, 4); -- Painting owner is looking for Sports equipment
 
+-- Trade table sample data
+INSERT INTO Trade (ID, Account1, Account2, Accepted) VALUES 
+(3, 4, 1, TRUE),  -- Alice traded with Account One
+(4, 5, 2, FALSE), -- Bob attempted a trade with The King, but it was declined
+(5, 6, 3, TRUE);  -- Eve successfully traded with Dogbreath
+
+-- ChatMessage table sample data
 INSERT INTO ChatMessage (Account1, Account2, Content) VALUES 
-(1, 2, 'Hello!'),
-(2, 1, 'Hi there!'),
-(3, 1, 'What up?');
+(4, 5, 'Hi Bob, interested in a trade?'),
+(5, 4, 'Hey Alice, yes I am!'),
+(6, 3, 'Hello, is the tent still available?'),
+(3, 6, 'Yes, it is. Let me know what you can offer.');
+
+-- RatingReview table sample data
+INSERT INTO RatingReview (ReviewedAccount, ReviewerAccount, Rating) VALUES 
+(4, 5, 5), -- Alice received a 5-star rating from Bob
+(5, 4, 4), -- Bob received a 4-star rating from Alice
+(6, 3, 3), -- Eve got a 3-star rating from Dogbreath
+(3, 6, 5), -- Dogbreath gave a 5-star rating to Eve
+(2, 1, 4); -- The King received a 4-star rating from Account One
+
+-- LikeSave table sample data
+INSERT INTO LikeSave (ItemID, AccountID) VALUES 
+(4, 1), -- Account One liked Guitar
+(5, 2), -- The King liked Laptop
+(6, 3), -- Dogbreath liked Tent
+(7, 4), -- Alice liked Desk Chair
+(8, 5), -- Bob liked Cookware Set
+(9, 6); -- Eve liked Painting
 
 
 -- -- List all items and their owners' email addresses:
