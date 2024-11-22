@@ -10,6 +10,9 @@
  * @date: Fall, 2024
  * 
  */
+// For local testing
+require('dotenv').config();
+
 
 // Set up the database connection.
 
@@ -38,7 +41,7 @@ app.use(express.json()); // Apply middleware to parse JSON globally
 app.get('/', readHelloMessage);
 app.post('/login', authenticateLogin); // Changed to POST
 app.get('/market/:id', readMarket);
-app.put('/items/:id', readAccountItems);
+app.get('/items/:id', readAccountItems);
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
