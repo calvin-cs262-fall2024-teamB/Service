@@ -76,7 +76,29 @@ function readMarket(req, res, next) {
   if (!id) {
     return res.status(400).send({ message: 'Invalid or missing ID' });
   }
-  db.any('SELECT * FROM Item WHERE OwnerAccount != ${id}', { id })
+  db.any(`SELECT 
+            i.ID AS ItemID,
+            i.OwnerAccount as ItemOwnerID,
+            i.Name AS ItemName,
+            i.Description AS ItemDescription,
+            i.Location AS ItemLocation,
+            i.DatePosted AS DatePosted,
+            JSON_AGG(DISTINCT jt.Name) AS ItemTags,
+            JSON_AGG(DISTINCT lt.Name) AS LookingForTags
+        FROM 
+            Item i
+        LEFT JOIN 
+            ItemTag it ON i.ID = it.ItemID
+        LEFT JOIN 
+            Tag jt ON it.TagID = jt.ID
+        LEFT JOIN 
+            ItemLookingFor ilf ON i.ID = ilf.ItemID
+        LEFT JOIN 
+            Tag lt ON ilf.LookingForID = lt.ID
+        WHERE
+            i.OwnerAccount != $1
+        GROUP BY 
+            i.ID;`, [ id ])
     .then((data) => returnDataOr404(res, data))
     .catch(next);
 }
@@ -86,7 +108,29 @@ function readAccountItems(req, res, next) {
   if (!id) {
     return res.status(400).send({ message: 'Invalid or missing ID' });
   }
-  db.any('SELECT * FROM Item WHERE OwnerAccount = ${id}', { id })
+  db.any(`SELECT 
+    i.ID AS ItemID,
+    i.OwnerAccount as ItemOwnerID,
+    i.Name AS ItemName,
+    i.Description AS ItemDescription,
+    i.Location AS ItemLocation,
+    i.DatePosted AS DatePosted,
+    JSON_AGG(DISTINCT jt.Name) AS ItemTags,
+    JSON_AGG(DISTINCT lt.Name) AS LookingForTags
+FROM 
+    Item i
+LEFT JOIN 
+    ItemTag it ON i.ID = it.ItemID
+LEFT JOIN 
+    Tag jt ON it.TagID = jt.ID
+LEFT JOIN 
+    ItemLookingFor ilf ON i.ID = ilf.ItemID
+LEFT JOIN 
+    Tag lt ON ilf.LookingForID = lt.ID
+WHERE
+    i.OwnerAccount = $1
+GROUP BY 
+    i.ID;`, [ id ])
     .then((data) => returnDataOr404(res, data))
     .catch(next);
 }
