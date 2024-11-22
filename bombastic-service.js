@@ -10,7 +10,7 @@
  * @date: Fall, 2024
  * 
  */
-// For local testing
+// ----------------- For local testing --------------------
 // require('dotenv').config();
 
 // Set up the database connection.
