@@ -2,6 +2,7 @@
 /* eslint-disable no-template-curly-in-string */
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
+/* eslint-disable no-undef */
 /**
  * This module implements a REST-inspired webservice for the Bombastic database and is run on an Azure App Service instance.
  *
