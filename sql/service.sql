@@ -15,14 +15,14 @@ DROP TABLE IF EXISTS Item;
 DROP TABLE IF EXISTS Account;
 
 CREATE TABLE Account (
-    ID integer PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     EmailAddress varchar(50) NOT NULL,
     Name varchar(50),
     Password varchar(50)
 );
 
 CREATE TABLE Item (
-    ID integer PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     OwnerAccount integer REFERENCES Account(ID),
     Name text,
     Description text,
@@ -32,7 +32,7 @@ CREATE TABLE Item (
 
 -- TAG SECTION -------------------------------------------------------------
 CREATE TABLE Tag (
-    ID integer PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     Name varchar(15)
 );
 
@@ -56,10 +56,10 @@ CREATE TABLE ItemLookingFor (
 
 -- TRADE SECTION -------------------------------------------------------------
 CREATE TABLE Trade (
-    ID integer PRIMARY KEY,
     Account1 integer REFERENCES Account(ID),
     Account2 integer REFERENCES Account(ID),
-    Accepted boolean
+    Accepted boolean,
+    PRIMARY KEY (Account1, Account2)
 );
 
 CREATE TABLE ChatMessage (
@@ -181,12 +181,12 @@ INSERT INTO ItemLookingFor (ItemID, LookingForID) VALUES
 
 -- Insert data into Trade
 INSERT INTO Trade (ID, Account1, Account2, Accepted) VALUES
-(1, 1, 2, TRUE),  -- Alice and Bob made a trade, accepted
-(2, 3, 1, FALSE),  -- Charlie and Alice made a trade, not accepted
-(3, 1, 4, TRUE),  -- Alice and David made a trade, accepted
-(4, 2, 6, FALSE), -- Bob and Frank made a trade, not accepted
-(5, 3, 5, TRUE),  -- Charlie and Ellen made a trade, accepted
-(6, 7, 8, TRUE);  -- Grace and Hannah made a trade, accepted
+(1, 2, TRUE),  -- Alice and Bob made a trade, accepted
+(3, 1, FALSE),  -- Charlie and Alice made a trade, not accepted
+(1, 4, TRUE),  -- Alice and David made a trade, accepted
+(2, 6, FALSE), -- Bob and Frank made a trade, not accepted
+(3, 5, TRUE),  -- Charlie and Ellen made a trade, accepted
+(7, 8, TRUE);  -- Grace and Hannah made a trade, accepted
 
 -- Insert data into ChatMessage
 INSERT INTO ChatMessage (Account1, Account2, Content, TimeSent) VALUES

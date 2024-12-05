@@ -12,7 +12,7 @@
  * 
  */
 // ----------------- For local testing --------------------
-require('dotenv').config();
+// require('dotenv').config();
 
 // Set up the database connection.
 
@@ -43,6 +43,7 @@ app.post('/login', authenticateLogin);
 app.get('/market/:id', readMarket); //Fetches all of the items not owned by a user
 app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
 app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
+app.get('/updateTrades/:id1/:id2', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
@@ -162,4 +163,48 @@ function readTrades(req, res, next) {
       t.Account1 = $1 OR t.Account2 = $1;`, [id])
     .then((data) => returnDataOr404(res, data))
     .catch(next);
+}
+
+async function createOrUpdateTrade(req, res, next) {
+  const { id1, id2 } = req.params; // Extract user IDs from route parameters
+
+  if (!id1 || !id2) {
+    return res.status(400).send({ message: 'Invalid or missing user IDs' });
+  }
+
+  try {
+    //Check if a trade already exists between the two users
+    const existingTrade = await db.oneOrNone(
+      `SELECT * FROM Trade 
+       WHERE (Account1 = $1 AND Account2 = $2) 
+          OR (Account1 = $2 AND Account2 = $1);`,
+      [id1, id2]
+    );
+
+    if (existingTrade) {
+      //If a trade exists, update its Accepted field to true
+      const updatedTrade = await db.one(
+        `UPDATE Trade 
+         SET Accepted = true 
+         WHERE (Account1 = $1 AND Account2 = $2) 
+            OR (Account1 = $2 AND Account2 = $1) 
+         RETURNING *;`,
+        [id1, id2]
+      );
+
+      res.status(200).send({ message: 'Trade updated successfully', trade: updatedTrade });
+    } else {
+      //If no trade exists, create a new trade with Accepted = false
+      const newTrade = await db.one(
+        `INSERT INTO Trade (Account1, Account2, Accepted) 
+         VALUES ($1, $2, $3) 
+         RETURNING *;`,
+        [id1, id2, false]
+      );  
+
+      res.status(201).send({ message: 'Trade created successfully', trade: newTrade });
+    }
+  } catch (err) {
+    next(err);
+  }
 }

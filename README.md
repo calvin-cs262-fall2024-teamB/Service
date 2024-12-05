@@ -7,6 +7,9 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 - Market item fetching: /market/:id         //id of account
 - User Item fetching: /items/:id            //id of account
 - Trade fetching: /trades/:id               //id of account associated with trade
+- Trade Updating: /updateTrades/:id1/:id2   //id1: initiator, id2: receiver
+    - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
+    - If the trade does not exist: creates a new trade entry with the accepted field as false
 ### Example Outputs of readMarket and readAccount Items:
 ```
 [
