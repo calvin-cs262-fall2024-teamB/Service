@@ -12,7 +12,7 @@
  * 
  */
 // ----------------- For local testing --------------------
-// require('dotenv').config();
+require('dotenv').config();
 
 // Set up the database connection.
 
@@ -39,9 +39,10 @@ app.use(express.json()); // Apply middleware to parse JSON globally
 
 // Routes
 app.get('/', readHelloMessage);
-app.post('/login', authenticateLogin); // Changed to POST
-app.get('/market/:id', readMarket);
-app.get('/items/:id', readAccountItems);
+app.post('/login', authenticateLogin);
+app.get('/market/:id', readMarket); //Fetches all of the items not owned by a user
+app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
+app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
@@ -140,6 +141,25 @@ function readHelloMessage(req, res) {
   res.send('MWAHAHAHAHA THE APP SERVICE WORKS!!!');
 }
 
-
-
-
+function readTrades(req, res, next) {
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).send({ message: 'Invalid or missing ID' });
+  }
+  db.any(`
+    SELECT 
+      t.ID AS TradeID,
+      t.Account1 AS User1ID,
+      t.Account2 AS User2ID,
+      CASE 
+        WHEN t.Account1 = $1 THEN t.Account2
+        WHEN t.Account2 = $1 THEN t.Account1
+      END AS OtherUserID,
+      t.Accepted AS TradeAccepted
+    FROM 
+      Trade t
+    WHERE 
+      t.Account1 = $1 OR t.Account2 = $1;`, [id])
+    .then((data) => returnDataOr404(res, data))
+    .catch(next);
+}
