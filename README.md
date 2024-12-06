@@ -6,29 +6,68 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 - Market item fetching: /market/:id         //id of account
 - User Item fetching: /items/:id            //id of account
+- Trade fetching: /trades/:id               //id of account associated with trade
+- Trade Updating: /updateTrades/:id1/:id2   //id1: initiator, id2: receiver
+    - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
+    - If the trade does not exist: creates a new trade entry with the accepted field as false
 ### Example Outputs of readMarket and readAccount Items:
-{
-  "items": [
-      {
-          "ItemID": 1,
-          "Name": "Laptop",
-          "Description": "A used laptop in good condition",
-          "Location": "(12.34, 56.78)",
-          "DatePosted": "2024-11-01T10:00:00",
-          "Tags": ["Electronics"],
-          "LookingFor": ["Wanted"]
-      },
-      {
-          "ItemID": 2,
-          "Name": "Sofa",
-          "Description": "A comfortable 3-seater sofa",
-          "Location": "(22.34, 45.67)",
-          "DatePosted": "2024-11-02T11:00:00",
-          "Tags": ["Furniture"],
-          "LookingFor": ["Free"]
-      }
-  ]
-}
+```
+[
+  {
+    "itemid": 2,
+    "itemownerid": 2,
+    "itemname": "Sofa",
+    "itemdescription": "A comfortable 3-seater sofa",
+    "itemlocation": {
+      "x": 22.34,
+      "y": 45.67
+    },
+    "dateposted": "2024-11-02T15:00:00.000Z",
+    "itemtags": [
+      "Furniture"
+    ],
+    "lookingfortags": [
+      "Free",
+      "Furniture"
+    ]
+  },
+  {
+    "itemid": 10,
+    "itemownerid": 2,
+    "itemname": "Dining Table",
+    "itemdescription": "A large wooden dining table, 6 seats",
+    "itemlocation": {
+      "x": 37.22,
+      "y": 20.33
+    },
+    "dateposted": "2024-11-10T20:00:00.000Z",
+    "itemtags": [
+      "Furniture"
+    ],
+    "lookingfortags": [null]
+  }
+]
+```
+
+### Example Output of readTrades (for userID=2):
+```
+[
+  {
+    "tradeid": 1,
+    "user1id": 1,
+    "user2id": 2,
+    "otheruserid": 1,
+    "tradeaccepted": true
+  },
+  {
+    "tradeid": 4,
+    "user1id": 2,
+    "user2id": 6,
+    "otheruserid": 6,
+    "tradeaccepted": false
+  }
+]
+```
 
 # Database Schema
 
