@@ -2,6 +2,7 @@
 -- This SQL script was based on the monopoly.sql script found at https://github.com/kvlinden-courses/cs262-code/blob/master/lab07/monopoly.sql 
 -- 
 --
+--
 -- Drop previous versions of the tables if they exist, in reverse order of foreign keys.
 DROP TABLE IF EXISTS ChatMessage;
 DROP TABLE IF EXISTS LikeSave;
