@@ -12,7 +12,7 @@
  * 
  */
 // ----------------- For local testing --------------------
-require('dotenv').config();
+// require('dotenv').config();
 
 // Set up the database connection.
 
