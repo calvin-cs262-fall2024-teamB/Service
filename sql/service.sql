@@ -15,14 +15,14 @@ DROP TABLE IF EXISTS Item;
 DROP TABLE IF EXISTS Account;
 
 CREATE TABLE Account (
-    ID integer PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     EmailAddress varchar(50) NOT NULL,
     Name varchar(50),
     Password varchar(50)
 );
 
 CREATE TABLE Item (
-    ID integer PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     OwnerAccount integer REFERENCES Account(ID),
     Name text,
     Description text,
@@ -32,7 +32,7 @@ CREATE TABLE Item (
 
 -- TAG SECTION -------------------------------------------------------------
 CREATE TABLE Tag (
-    ID integer PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     Name varchar(15)
 );
 
@@ -56,10 +56,10 @@ CREATE TABLE ItemLookingFor (
 
 -- TRADE SECTION -------------------------------------------------------------
 CREATE TABLE Trade (
-    ID integer PRIMARY KEY,
     Account1 integer REFERENCES Account(ID),
     Account2 integer REFERENCES Account(ID),
-    Accepted boolean
+    Accepted boolean,
+    PRIMARY KEY (Account1, Account2)
 );
 
 CREATE TABLE ChatMessage (
@@ -95,64 +95,43 @@ GRANT SELECT ON Trade TO PUBLIC;
 GRANT SELECT ON LikeSave TO PUBLIC;
 GRANT SELECT ON ChatMessage TO PUBLIC;
 
-
 -- SAMPLE DATA ----------------------------------------------------------------
 -- Insert data into Account
-INSERT INTO Account (ID, EmailAddress, Name, Password) VALUES
-(1, 'alice@example.com', 'Alice Smith', 'password123'),
-(2, 'bob@example.com', 'Bob Johnson', 'password456'),
-(3, 'charlie@example.com', 'Charlie Brown', 'password789'),
-(4, 'david@example.com', 'David Clark', 'password101'),
-(5, 'ellen@example.com', 'Ellen White', 'password102'),
-(6, 'frank@example.com', 'Frank Green', 'password103'),
-(7, 'grace@example.com', 'Grace Lee', 'password104'),
-(8, 'hannah@example.com', 'Hannah Black', 'password105');
+INSERT INTO Account (EmailAddress, Name, Password) VALUES
+('alice@example.com', 'Alice Smith', 'password123'),
+('bob@example.com', 'Bob Johnson', 'password456'),
+('charlie@example.com', 'Charlie Brown', 'password789'),
+('david@example.com', 'David Clark', 'password101'),
+('ellen@example.com', 'Ellen White', 'password102'),
+('frank@example.com', 'Frank Green', 'password103'),
+('grace@example.com', 'Grace Lee', 'password104'),
+('hannah@example.com', 'Hannah Black', 'password105');
 
 -- Insert data into Tag
-INSERT INTO Tag (ID, Name) VALUES
-(1, 'Electronics'),
-(2, 'Furniture'),
-(3, 'Books'),
-(4, 'Wanted'),
-(5, 'Free'),
-(6, 'Toys'),
-(7, 'Clothing'),
-(8, 'Sports'),
-(9, 'Gardening'),
-(10, 'Music'),
-(11, 'Free Stuff'),
-(12, 'Antiques'),
-(13, 'Pets'),
-(14, 'School Supplies');
+INSERT INTO Tag (Name) VALUES
+('Electronics'), ('Furniture'), ('Books'), ('Wanted'), ('Free'), 
+('Toys'), ('Clothing'), ('Sports'), ('Gardening'), ('Music'), 
+('Free Stuff'), ('Antiques'), ('Pets'), ('School Supplies');
 
 -- Insert data into AccountTag
 INSERT INTO AccountTag (AccountID, TagID) VALUES
-(1, 1),  -- Alice is associated with 'Electronics'
-(2, 2),  -- Bob is associated with 'Furniture'
-(3, 3),  -- Charlie is associated with 'Books'
-(1, 4),  -- Alice is also associated with 'Wanted'
-(4, 8),  -- David is associated with 'Sports'
-(5, 7),  -- Ellen is associated with 'Clothing'
-(6, 6),  -- Frank is associated with 'Toys'
-(7, 9),  -- Grace is associated with 'Gardening'
-(8, 10), -- Hannah is associated with 'Music'
-(1, 5),  -- Alice is also associated with 'Free Stuff'
-(2, 6),  -- Bob is associated with 'Toys'
-(3, 12), -- Charlie is associated with 'Antiques'
-(4, 13); -- David is also associated with 'Pets'
+(1, 1), (2, 2), (3, 3), (1, 4), (4, 8),
+(5, 7), (6, 6), (7, 9), (8, 10), (1, 5),
+(2, 6), (3, 12), (4, 13);
 
 -- Insert data into Item
-INSERT INTO Item (ID, OwnerAccount, Name, Description, Location, DatePosted) VALUES
-(1, 1, 'Laptop', 'A used laptop in good condition', '(12.34, 56.78)', '2024-11-01 10:00:00'),
-(2, 2, 'Sofa', 'A comfortable 3-seater sofa', '(22.34, 45.67)', '2024-11-02 11:00:00'),
-(3, 3, 'Book: Programming 101', 'A beginner programming book', '(33.34, 23.45)', '2024-11-03 12:00:00'),
-(4, 4, 'Soccer Ball', 'A used soccer ball for sale', '(15.12, 35.22)', '2024-11-04 09:00:00'),
-(5, 5, 'Winter Coat', 'A warm winter coat, size M', '(20.33, 45.55)', '2024-11-05 10:00:00'),
-(6, 6, 'Toy Train', 'A collectible toy train in good condition', '(23.44, 50.66)', '2024-11-06 11:00:00'),
-(7, 7, 'Garden Tools', 'A set of gardening tools, lightly used', '(27.55, 33.77)', '2024-11-07 12:00:00'),
-(8, 8, 'Guitar', 'An acoustic guitar for beginners', '(30.66, 40.88)', '2024-11-08 13:00:00'),
-(9, 1, 'Smartphone', 'A new smartphone, 128GB, unlocked', '(35.11, 25.22)', '2024-11-09 14:00:00'),
-(10, 2, 'Dining Table', 'A large wooden dining table, 6 seats', '(37.22, 20.33)', '2024-11-10 15:00:00');
+INSERT INTO Item (OwnerAccount, Name, Description, Location, DatePosted) VALUES
+(1, 'Laptop', 'A used laptop in good condition', '(12.34, 56.78)', '2024-11-01 10:00:00'),
+(2, 'Sofa', 'A comfortable 3-seater sofa', '(22.34, 45.67)', '2024-11-02 11:00:00'),
+(3, 'Book: Programming 101', 'A beginner programming book', '(33.34, 23.45)', '2024-11-03 12:00:00'),
+(4, 'Soccer Ball', 'A used soccer ball for sale', '(15.12, 35.22)', '2024-11-04 09:00:00'),
+(5, 'Winter Coat', 'A warm winter coat, size M', '(20.33, 45.55)', '2024-11-05 10:00:00'),
+(6, 'Toy Train', 'A collectible toy train in good condition', '(23.44, 50.66)', '2024-11-06 11:00:00'),
+(7, 'Garden Tools', 'A set of gardening tools, lightly used', '(27.55, 33.77)', '2024-11-07 12:00:00'),
+(8, 'Guitar', 'An acoustic guitar for beginners', '(30.66, 40.88)', '2024-11-08 13:00:00'),
+(2, 'Smartphone', 'A new smartphone, 128GB, unlocked', '(35.11, 25.22)', '2024-11-09 14:00:00'),
+(2, 'Dining Table', 'A large wooden dining table, 6 seats', '(37.22, 20.33)', '2024-11-10 15:00:00');
+
 
 -- Insert data into ItemTag
 INSERT INTO ItemTag (ItemID, TagID) VALUES
@@ -180,13 +159,13 @@ INSERT INTO ItemLookingFor (ItemID, LookingForID) VALUES
 (8, 10);  -- Guitar is looking for 'Music'
 
 -- Insert data into Trade
-INSERT INTO Trade (ID, Account1, Account2, Accepted) VALUES
-(1, 1, 2, TRUE),  -- Alice and Bob made a trade, accepted
-(2, 3, 1, FALSE),  -- Charlie and Alice made a trade, not accepted
-(3, 1, 4, TRUE),  -- Alice and David made a trade, accepted
-(4, 2, 6, FALSE), -- Bob and Frank made a trade, not accepted
-(5, 3, 5, TRUE),  -- Charlie and Ellen made a trade, accepted
-(6, 7, 8, TRUE);  -- Grace and Hannah made a trade, accepted
+INSERT INTO Trade (Account1, Account2, Accepted) VALUES
+(1, 2, TRUE),  -- Alice and Bob made a trade, accepted
+(3, 1, FALSE),  -- Charlie and Alice made a trade, not accepted
+(1, 4, TRUE),  -- Alice and David made a trade, accepted
+(2, 6, FALSE), -- Bob and Frank made a trade, not accepted
+(3, 5, TRUE),  -- Charlie and Ellen made a trade, accepted
+(7, 8, TRUE);  -- Grace and Hannah made a trade, accepted
 
 -- Insert data into ChatMessage
 INSERT INTO ChatMessage (Account1, Account2, Content, TimeSent) VALUES
