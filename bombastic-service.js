@@ -12,7 +12,7 @@
  * 
  */
 // ----------------- For local testing --------------------
-// require('dotenv').config();
+require('dotenv').config();
 
 // Set up the database connection.
 
@@ -40,6 +40,7 @@ app.use(express.json()); // Apply middleware to parse JSON globally
 // Routes
 app.get('/', readHelloMessage);
 app.post('/login', authenticateLogin);
+app.post('/items', createItem);
 app.get('/market/:id', readMarket); //Fetches all of the items not owned by a user
 app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
 app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
@@ -54,6 +55,55 @@ function returnDataOr404(res, data) {
     res.sendStatus(404);
   } else {
     res.send(data);
+  }
+}
+
+async function createItem(req, res, next) {
+  const { ownerAccount, name, description, location, datePosted, tags, lookingForTags } = req.body;
+
+  // Validate required fields
+  if (!ownerAccount || !name || !description || !location || !datePosted) {
+    return res.status(400).send({ message: 'Missing required fields' });
+  }
+
+  try {
+    // Insert the new item
+    const newItem = await db.one(
+      `INSERT INTO Item (OwnerAccount, Name, Description, Location, DatePosted)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *;`,
+      [ownerAccount, name, description, location, datePosted]
+    );
+
+    // Insert associated tags (if provided)
+    if (tags && tags.length > 0) {
+      await Promise.all(
+        tags.map(tag =>
+          db.none(
+            `INSERT INTO ItemTag (ItemID, TagID)
+             VALUES ($1, (SELECT ID FROM Tag WHERE Name = $2));`,
+            [newItem.id, tag]
+          )
+        )
+      );
+    }
+
+    // Insert associated "looking for" tags (if provided)
+    if (lookingForTags && lookingForTags.length > 0) {
+      await Promise.all(
+        lookingForTags.map(tag =>
+          db.none(
+            `INSERT INTO ItemLookingFor (ItemID, LookingForID)
+             VALUES ($1, (SELECT ID FROM Tag WHERE Name = $2));`,
+            [newItem.id, tag]
+          )
+        )
+      );
+    }
+
+    res.status(201).send({ message: 'Item created successfully', item: newItem });
+  } catch (err) {
+    next(err);
   }
 }
 
