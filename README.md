@@ -10,6 +10,7 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 - Trade Updating: /updateTrades/:id1/:id2   //id1: initiator, id2: receiver
     - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
     - If the trade does not exist: creates a new trade entry with the accepted field as false
+- Item creation: /items, requires {ownerAccount, name, description, location, imageData, itemTags, lookingForTags} within post body
 ### Example Outputs of readMarket and readAccount Items:
 ```
 [

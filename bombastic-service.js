@@ -44,6 +44,7 @@ app.get('/market/:id', readMarket); //Fetches all of the items not owned by a us
 app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
 app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
 app.get('/updateTrades/:id1/:id2', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
+app.post('/items', createItem); //creates a new item
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
@@ -80,28 +81,37 @@ function readMarket(req, res, next) {
     return res.status(400).send({ message: 'Invalid or missing ID' });
   }
   db.any(`SELECT 
-            i.ID AS ItemID,
-            i.OwnerAccount as ItemOwnerID,
-            i.Name AS ItemName,
-            i.Description AS ItemDescription,
-            i.Location AS ItemLocation,
-            i.DatePosted AS DatePosted,
-            JSON_AGG(DISTINCT jt.Name) AS ItemTags,
-            JSON_AGG(DISTINCT lt.Name) AS LookingForTags
-        FROM 
-            Item i
-        LEFT JOIN 
-            ItemTag it ON i.ID = it.ItemID
-        LEFT JOIN 
-            Tag jt ON it.TagID = jt.ID
-        LEFT JOIN 
-            ItemLookingFor ilf ON i.ID = ilf.ItemID
-        LEFT JOIN 
-            Tag lt ON ilf.LookingForID = lt.ID
-        WHERE
-            i.OwnerAccount != $1
-        GROUP BY 
-            i.ID;`, [ id ])
+    i.ID AS ItemID,
+    i.OwnerAccount AS ItemOwnerID,
+    i.Name AS ItemName,
+    i.Description AS ItemDescription,
+    i.Location AS ItemLocation,
+    i.DatePosted AS DatePosted,
+    JSON_AGG(DISTINCT jt.Name) AS ItemTags,
+    JSON_AGG(DISTINCT lt.Name) AS LookingForTags,
+    JSON_AGG(
+        DISTINCT JSONB_BUILD_OBJECT(
+            'ImageData', ii.ImageData,
+            'Description', ii.Description
+        )
+    ) AS ItemImages
+    FROM 
+        Item i
+    LEFT JOIN 
+        ItemTag it ON i.ID = it.ItemID
+    LEFT JOIN 
+        Tag jt ON it.TagID = jt.ID
+    LEFT JOIN 
+        ItemLookingFor ilf ON i.ID = ilf.ItemID
+    LEFT JOIN 
+        Tag lt ON ilf.LookingForID = lt.ID
+    LEFT JOIN
+        ItemImage ii ON i.ID = ii.ItemID
+    WHERE
+        i.OwnerAccount != $1
+    GROUP BY 
+        i.ID;
+    `, [ id ])
     .then((data) => returnDataOr404(res, data))
     .catch(next);
 }
@@ -113,27 +123,36 @@ function readAccountItems(req, res, next) {
   }
   db.any(`SELECT 
     i.ID AS ItemID,
-    i.OwnerAccount as ItemOwnerID,
+    i.OwnerAccount AS ItemOwnerID,
     i.Name AS ItemName,
     i.Description AS ItemDescription,
     i.Location AS ItemLocation,
     i.DatePosted AS DatePosted,
     JSON_AGG(DISTINCT jt.Name) AS ItemTags,
-    JSON_AGG(DISTINCT lt.Name) AS LookingForTags
-FROM 
-    Item i
-LEFT JOIN 
-    ItemTag it ON i.ID = it.ItemID
-LEFT JOIN 
-    Tag jt ON it.TagID = jt.ID
-LEFT JOIN 
-    ItemLookingFor ilf ON i.ID = ilf.ItemID
-LEFT JOIN 
-    Tag lt ON ilf.LookingForID = lt.ID
-WHERE
-    i.OwnerAccount = $1
-GROUP BY 
-    i.ID;`, [ id ])
+    JSON_AGG(DISTINCT lt.Name) AS LookingForTags,
+    JSON_AGG(
+        DISTINCT JSONB_BUILD_OBJECT(
+            'ImageData', ii.ImageData,
+            'Description', ii.Description
+        )
+    ) AS ItemImages
+    FROM 
+        Item i
+    LEFT JOIN 
+        ItemTag it ON i.ID = it.ItemID
+    LEFT JOIN 
+        Tag jt ON it.TagID = jt.ID
+    LEFT JOIN 
+        ItemLookingFor ilf ON i.ID = ilf.ItemID
+    LEFT JOIN 
+        Tag lt ON ilf.LookingForID = lt.ID
+    LEFT JOIN
+        ItemImage ii ON i.ID = ii.ItemID
+    WHERE
+        i.OwnerAccount = $1
+    GROUP BY 
+        i.ID;
+    `, [ id ])
     .then((data) => returnDataOr404(res, data))
     .catch(next);
 }
@@ -208,3 +227,69 @@ async function createOrUpdateTrade(req, res, next) {
     next(err);
   }
 }
+
+// Route to create a new item entry
+async function createItem(req, res, next) {
+  const { ownerAccount, name, description, location, imageData, itemTags, lookingForTags } = req.body;
+
+  // Validate required fields
+  if (!ownerAccount || !name || !location) {
+    return res.status(400).send({ message: 'Invalid or missing required fields: ownerAccount, name, and location are required.' });
+  }
+
+  try {
+    // Begin a transaction for consistent inserts
+    await db.tx(async (t) => {
+      // Insert the item
+      const newItem = await t.one(
+        `INSERT INTO Item (OwnerAccount, Name, Description, Location, DatePosted) 
+         VALUES ($1, $2, $3, $4, NOW()) 
+         RETURNING ID;`,
+        [ownerAccount, name, description, location]
+      );
+
+      const itemId = newItem.id;
+
+      // Insert tags if provided
+      if (itemTags && Array.isArray(itemTags)) {
+        const itemTagQueries = itemTags.map((tag) =>
+          t.none(
+            `INSERT INTO ItemTag (ItemID, TagID) 
+             VALUES ($1, (SELECT ID FROM Tag WHERE Name = $2));`,
+            [itemId, tag]
+          )
+        );
+        await t.batch(itemTagQueries); // Execute all tag inserts
+      }
+
+      // Insert "looking for" tags if provided
+      if (lookingForTags && Array.isArray(lookingForTags)) {
+        const lookingForTagQueries = lookingForTags.map((tag) =>
+          t.none(
+            `INSERT INTO ItemLookingFor (ItemID, LookingForID) 
+             VALUES ($1, (SELECT ID FROM Tag WHERE Name = $2));`,
+            [itemId, tag]
+          )
+        );
+        await t.batch(lookingForTagQueries); // Execute all "looking for" tag inserts
+      }
+
+      // Insert images if provided
+      if (imageData && Array.isArray(imageData)) {
+        const imageQueries = imageData.map((image) =>
+          t.none(
+            `INSERT INTO ItemImage (ItemID, ImageData, Description) 
+             VALUES ($1, $2, $3);`,
+            [itemId, image.data, image.description || null]
+          )
+        );
+        await t.batch(imageQueries); // Execute all image inserts
+      }
+    });
+
+    // Return a success response
+    res.status(201).send({ message: 'Item created successfully.' });
+  } catch (err) {
+    next(err); // Pass the error to error-handling middleware
+  }
+};
