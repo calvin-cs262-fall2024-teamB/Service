@@ -31,6 +31,20 @@ CREATE TABLE Item (
     DatePosted timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE ItemImage (
+    ID SERIAL PRIMARY KEY,
+    ItemID INTEGER REFERENCES Item(ID),
+    ImageData TEXT NOT NULL, -- Base64-encoded image data
+    Description TEXT -- Optional description for the image
+);
+
+CREATE TABLE AccountImage (
+    ID SERIAL PRIMARY KEY,
+    AccountID INTEGER REFERENCES Account(ID),
+    ImageData TEXT NOT NULL, -- Base64-encoded image data
+    Description TEXT -- Optional description for the image
+);
+
 -- TAG SECTION -------------------------------------------------------------
 CREATE TABLE Tag (
     ID SERIAL PRIMARY KEY,
@@ -87,6 +101,8 @@ CREATE TABLE LikeSave (
 -- Allow Accounts to select data from the tables.
 GRANT SELECT ON Account TO PUBLIC;
 GRANT SELECT ON Item TO PUBLIC;
+GRANT SELECT ON ItemImage TO PUBLIC;
+GRANT SELECT ON AccountImage TO PUBLIC;
 GRANT SELECT ON Tag TO PUBLIC;
 GRANT SELECT ON ItemLookingFor TO PUBLIC;
 GRANT SELECT ON ItemTag TO PUBLIC;
@@ -108,17 +124,17 @@ INSERT INTO Account (EmailAddress, Name, Password) VALUES
 ('grace@example.com', 'Grace Lee', 'password104'),
 ('hannah@example.com', 'Hannah Black', 'password105');
 
+
 -- Insert data into Tag
 INSERT INTO Tag (Name) VALUES
-('Electronics'), ('Furniture'), ('Books'), ('Wanted'), ('Free'), 
-('Toys'), ('Clothing'), ('Sports'), ('Gardening'), ('Music'), 
-('Free Stuff'), ('Antiques'), ('Pets'), ('School Supplies');
+('books'), ('decor'), ('kitchenware'), ('furniture'), ('appliances'), 
+('electronics'), ('toys'), ('games');
 
 -- Insert data into AccountTag
 INSERT INTO AccountTag (AccountID, TagID) VALUES
-(1, 1), (2, 2), (3, 3), (1, 4), (4, 8),
-(5, 7), (6, 6), (7, 9), (8, 10), (1, 5),
-(2, 6), (3, 12), (4, 13);
+(1, 1), (2, 2), (3, 3), (1, 4), (4, 1),
+(5, 7), (6, 6), (7, 2), (8, 3), (1, 5),
+(2, 6), (3, 4), (4, 5);
 
 -- Insert data into Item
 INSERT INTO Item (OwnerAccount, Name, Description, Location, DatePosted) VALUES
@@ -137,14 +153,14 @@ INSERT INTO Item (OwnerAccount, Name, Description, Location, DatePosted) VALUES
 -- Insert data into ItemTag
 INSERT INTO ItemTag (ItemID, TagID) VALUES
 (1, 1),  -- Laptop tagged as 'Electronics'
-(1, 14),  -- Laptop tagged as 'School Supplies'
+(1, 6),  -- Laptop tagged as 'School Supplies'
 (2, 2),  -- Sofa tagged as 'Furniture'
 (3, 3),  -- Book tagged as 'Books'
-(4, 8),  -- Soccer Ball tagged as 'Sports'
+(4, 1),  -- Soccer Ball tagged as 'Sports'
 (5, 7),  -- Winter Coat tagged as 'Clothing'
 (6, 6),  -- Toy Train tagged as 'Toys'
-(7, 9),  -- Garden Tools tagged as 'Gardening'
-(8, 10), -- Guitar tagged as 'Music'
+(7, 1),  -- Garden Tools tagged as 'Gardening'
+(8, 3), -- Guitar tagged as 'Music'
 (9, 1),  -- Smartphone tagged as 'Electronics'
 (10, 2); -- Dining Table tagged as 'Furniture'
 
@@ -153,11 +169,11 @@ INSERT INTO ItemLookingFor (ItemID, LookingForID) VALUES
 (1, 4),  -- Laptop is looking for 'Wanted'
 (2, 5),  -- Sofa is looking for 'Free'
 (2, 2),  -- Sofa is looking for 'Furniture'
-(4, 14),  -- Soccer Ball is looking for 'Wanted Items'
+(4, 6),  -- Soccer Ball is looking for 'Wanted Items'
 (5, 5),   -- Winter Coat is looking for 'Free Stuff'
-(6, 11),  -- Toy Train is looking for 'Free Stuff'
-(7, 9),   -- Garden Tools are looking for 'Gardening'
-(8, 10);  -- Guitar is looking for 'Music'
+(6, 3),  -- Toy Train is looking for 'Free Stuff'
+(7, 1),   -- Garden Tools are looking for 'Gardening'
+(8, 2);  -- Guitar is looking for 'Music'
 
 -- Insert data into Trade
 INSERT INTO Trade (Account1, Account2, Accepted) VALUES
