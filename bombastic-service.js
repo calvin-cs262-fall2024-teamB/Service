@@ -304,6 +304,12 @@ async function updateItem(req, res, next) {
   }
 
   try {
+    // Ensure the ID cannot be modified and is only used for identifying the item
+    const itemExists = await db.oneOrNone('SELECT 1 FROM Item WHERE ID = $1', [id]);
+    if (!itemExists) {
+      return res.status(404).send({ message: 'Item not found.' });
+    }
+
     // Begin a transaction for consistent updates
     await db.tx(async (t) => {
       // Update basic fields of the item
