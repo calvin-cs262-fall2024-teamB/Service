@@ -2,15 +2,38 @@
 App service repo. More details can be found [here](https://github.com/calvin-cs262-fall2024-teamB/Project)
 Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
-- login authentication: /login              takes in the email and (...plaintext) password from the json body 
+- login authentication: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login              
+  - takes in the email and (...plaintext) password from the json body 
 
-- Market item fetching: /market/:id         //id of account
-- User Item fetching: /items/:id            //id of account
-- Trade fetching: /trades/:id               //id of account associated with trade
-- Trade Updating: /updateTrades/:id1/:id2   //id1: initiator, id2: receiver
-    - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
-    - If the trade does not exist: creates a new trade entry with the accepted field as false
-- Item creation: /items, requires {ownerAccount, name, description, location, imageData, itemTags, lookingForTags} within post body
+- Market item fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/market/:id
+
+- User Items: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items/:id
+- User Item Creation: /items, { ownerAccount, name, description, location, imageData, itemTags, lookingForTags } in request body, first 4 fields required.
+  - Example input:
+    - {
+        "ownerAccount": 1,
+        "name": "Placeholder Item",
+        "description": "This is a sample item for testing purposes.",
+        "location": "(40.7128, -74.0060)",
+        "imageData": [
+          {
+            "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+            "description": "Placeholder image for testing."
+          }
+        ],
+        "itemTags": ["toys", "games"],
+        "lookingForTags": ["decor", "kitchenware"]
+      }
+
+- Update Item: /items, { id, name, description, location, itemTags, lookingForTags, imageData } in request body, only ID required
+
+- Trade fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id
+  - id of account associated with trade
+- Trade Updating: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/updateTrades/:id1/:id2
+  - id1: initiator, id2: receiver
+  - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
+  - If the trade does not exist: creates a new trade entry with the accepted field as false
+
 ### Example Outputs of readMarket and readAccount Items:
 ```
 [
@@ -98,6 +121,30 @@ Stores items owned by users.
 
 ---
 
+## ItemImage Table
+Stores images related to items.
+
+| Column         | Type         | Constraints               | Description                              |
+|----------------|--------------|---------------------------|------------------------------------------|
+| ID             | integer      | PRIMARY KEY               | Unique identifier for each item image.   |
+| ItemID         | integer      | REFERENCES Item(ID)       | ID of the associated item.               |
+| ImageData      | text         | NOT NULL                  | Base64-encoded image data.               |
+| Description    | text         |                           | Optional description for the image.      |
+
+---
+
+## AccountImage Table
+Stores images related to user accounts.
+
+| Column         | Type         | Constraints               | Description                              |
+|----------------|--------------|---------------------------|------------------------------------------|
+| ID             | integer      | PRIMARY KEY               | Unique identifier for each account image.|
+| AccountID      | integer      | REFERENCES Account(ID)    | ID of the associated account.            |
+| ImageData      | text         | NOT NULL                  | Base64-encoded image data.               |
+| Description    | text         |                           | Optional description for the image.      |
+
+---
+
 ## Tag Table
 Stores tags for categorization purposes.
 
@@ -146,10 +193,10 @@ Stores trade relationships between users.
 
 | Column         | Type         | Constraints               | Description                              |
 |----------------|--------------|---------------------------|------------------------------------------|
-| ID             | integer      | PRIMARY KEY               | Unique identifier for the trade.         |
 | Account1       | integer      | REFERENCES Account(ID)    | ID of the first user involved in the trade. |
 | Account2       | integer      | REFERENCES Account(ID)    | ID of the second user involved in the trade. |
 | Accepted       | boolean      |                           | Indicates if the trade was accepted.     |
+| **Primary Key**|              | (Account1, Account2)      | Composite key to ensure uniqueness.      |
 
 ---
 
@@ -162,7 +209,7 @@ Stores messages exchanged between users.
 | Account2       | integer      | REFERENCES Account(ID)    | ID of the recipient.                     |
 | Content        | text         |                           | Message content.                         |
 | TimeSent       | timestamp    | DEFAULT CURRENT_TIMESTAMP | Timestamp when the message was sent.     |
-| **Primary Key**|              | (Account1, Account2, TimeSent) | Composite key to ensure uniqueness.      |
+| **Primary Key**|              | (Account1, Account2, TimeSent) | Composite key to ensure uniqueness.    |
 
 ---
 
@@ -174,7 +221,7 @@ Stores ratings and reviews given by one user to another.
 | ReviewedAccount   | integer    | REFERENCES Account(ID)    | ID of the user being reviewed.           |
 | ReviewerAccount   | integer    | REFERENCES Account(ID)    | ID of the user giving the review.        |
 | Rating            | integer    |                           | Rating score provided by the reviewer.   |
-| **Primary Key**   |            | (ReviewedAccount, ReviewerAccount) | Composite key to ensure uniqueness.      |
+| **Primary Key**   |            | (ReviewedAccount, ReviewerAccount) | Composite key to ensure uniqueness.    |
 
 ---
 
@@ -186,5 +233,3 @@ Stores items that users have liked or saved.
 | ItemID         | integer      | REFERENCES Item(ID)       | ID of the liked or saved item.           |
 | AccountID      | integer      | REFERENCES Account(ID)    | ID of the user who liked or saved the item. |
 | **Primary Key**|              | (ItemID, AccountID)       | Composite key to ensure uniqueness.      |
-
----
