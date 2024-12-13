@@ -40,6 +40,8 @@ app.use(express.json()); // Apply middleware to parse JSON globally
 // Routes
 app.get('/', readHelloMessage);
 app.post('/login', authenticateLogin);
+app.post('/account', createAccount);
+app.put('/account', updateAccount);
 app.get('/market/:id', readMarket); //Fetches all of the items not owned by a user
 app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
 app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
@@ -56,6 +58,172 @@ function returnDataOr404(res, data) {
     res.sendStatus(404);
   } else {
     res.send(data);
+  }
+}
+
+async function createAccount(req, res, next) {
+  const { email, name, password, location, tags, imageData } = req.body;
+
+  // Validate input
+  if (!email || !password || !name) {
+    return res.status(400).send({ message: 'Email, password, and name are required.' });
+  }
+
+  try {
+    // Check if the email is already in use
+    const existingAccount = await db.oneOrNone('SELECT * FROM Account WHERE EmailAddress = $1', [email]);
+    if (existingAccount) {
+      return res.status(409).send({ message: 'Email address already in use.' });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    let newAccount;
+
+    // Begin transaction
+    await db.tx(async (t) => {
+      // Create the account
+      newAccount = await t.one(
+        `INSERT INTO Account (EmailAddress, Name, Password) 
+         VALUES ($1, $2, $3) 
+         RETURNING ID, EmailAddress, Name;`,
+        [email, name, hashedPassword]
+      );
+
+      const accountId = newAccount.id;
+
+      // Link account tags if provided
+      if (tags && Array.isArray(tags)) {
+        const accountTagQueries = tags.map((tag) =>
+          t.none(
+            `INSERT INTO AccountTag (AccountID, TagID) 
+             VALUES ($1, (SELECT ID FROM Tag WHERE Name = $2));`,
+            [accountId, tag]
+          )
+        );
+        await t.batch(accountTagQueries); // Execute all tag inserts
+      }
+
+      // Link image if provided
+      if (imageData && Array.isArray(imageData)) {
+        // Insert new image
+        const imageQueries = imageData.map((image) =>
+          t.none(
+            `INSERT INTO AccountImage (AccountID, ImageData, Description) 
+             VALUES ($1, $2, $3);`,
+            [accountId, image.data, image.description || null]
+          )
+        );
+        await t.batch(imageQueries); // Execute all image inserts
+      }
+      // Optionally handle location (if included in the database schema and not null)
+      if (location) {
+        await t.none(
+          `UPDATE Account 
+           SET Location = $1 
+           WHERE ID = $2;`,
+          [location, accountId]
+        );
+      }
+    });
+
+    // Return the newly created account details (excluding password)
+    res.status(201).send({ message: 'Account created successfully.', account: newAccount });
+  } catch (err) {
+    next(err); // Pass the error to the error-handling middleware
+  }
+}
+
+async function updateAccount(req, res, next) {
+  const { id, email, name, password, location, tags, imageData } = req.body;
+
+  // Validate input
+  if (!id) {
+    return res.status(400).send({ message: 'Account ID is required.' });
+  }
+
+  try {
+    // Check if the account exists
+    const existingAccount = await db.oneOrNone('SELECT * FROM Account WHERE ID = $1', [id]);
+    if (!existingAccount) {
+      return res.status(404).send({ message: 'Account not found.' });
+    }
+
+    // If email is provided, check if it is already in use by another account
+    if (email && email !== existingAccount.EmailAddress) {
+      const emailExists = await db.oneOrNone('SELECT * FROM Account WHERE EmailAddress = $1', [email]);
+      if (emailExists) {
+        return res.status(409).send({ message: 'Email address already in use.' });
+      }
+    }
+
+    // Hash the new password if provided
+    let hashedPassword = existingAccount.Password;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    let updatedAccount;
+
+    // Begin transaction
+    await db.tx(async (t) => {
+      // Update the account details
+      updatedAccount = await t.one(
+        `UPDATE Account 
+         SET EmailAddress = $1, Name = $2, Password = $3 
+         WHERE ID = $4 
+         RETURNING ID, EmailAddress, Name;`,
+        [email || existingAccount.EmailAddress, name || existingAccount.Name, hashedPassword, id]
+      );
+
+      // Update the location if provided
+      if (location) {
+        await t.none(
+          `UPDATE Account 
+           SET Location = $1 
+           WHERE ID = $2;`,
+          [location, id]
+        );
+      }
+
+      // Update account tags if provided
+      if (tags && Array.isArray(tags)) {
+        // Delete existing tags
+        await t.none('DELETE FROM AccountTag WHERE AccountID = $1', [id]);
+
+        // Insert new tags
+        const accountTagQueries = tags.map((tag) =>
+          t.none(
+            `INSERT INTO AccountTag (AccountID, TagID) 
+             VALUES ($1, (SELECT ID FROM Tag WHERE Name = $2));`,
+            [id, tag]
+          )
+        );
+        await t.batch(accountTagQueries); // Execute all tag inserts
+      }
+
+      // Update account images if provided
+      if (imageData && Array.isArray(imageData)) {
+        // Delete existing images
+        await t.none('DELETE FROM AccountImage WHERE AccountID = $1', [id]);
+
+        // Insert new images
+        const imageQueries = imageData.map((image) =>
+          t.none(
+            `INSERT INTO AccountImage (AccountID, ImageData, Description) 
+             VALUES ($1, $2, $3);`,
+            [id, image.data, image.description || null]
+          )
+        );
+        await t.batch(imageQueries); // Execute all image inserts
+      }
+    });
+
+    // Return the updated account details (excluding password)
+    res.status(200).send({ message: 'Account updated successfully.', account: updatedAccount });
+  } catch (err) {
+    next(err); // Pass the error to the error-handling middleware
   }
 }
 

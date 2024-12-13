@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS AccountTag;
 DROP TABLE IF EXISTS ItemTag;
 DROP TABLE IF EXISTS ItemLookingFor;
 DROP TABLE IF EXISTS Tag;
+DROP TABLE IF EXISTS ItemImage;
+DROP TABLE IF EXISTS AccountImage;
 DROP TABLE IF EXISTS Item;
 DROP TABLE IF EXISTS Account;
 
@@ -19,7 +21,8 @@ CREATE TABLE Account (
     ID SERIAL PRIMARY KEY,
     EmailAddress varchar(50) NOT NULL,
     Name varchar(50),
-    Password varchar(50)
+    Location point,
+    Password varchar(255) NOT NULL
 );
 
 CREATE TABLE Item (
