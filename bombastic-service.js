@@ -12,7 +12,7 @@
  * 
  */
 // ----------------- For local testing --------------------
-// require('dotenv').config();
+require('dotenv').config();
 
 // Set up the database connection.
 
@@ -45,7 +45,7 @@ app.put('/account', updateAccount);
 app.get('/market/:id', readMarket); //Fetches all of the items not owned by a user
 app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
 app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
-app.put('/updateTrades/:id1/:id2', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
+app.put('/updateTrades', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
 app.post('/items', createItem); //creates a new item
 app.put('/items', updateItem); //updates the field of an item
 
@@ -384,7 +384,7 @@ async function createOrUpdateTrade(req, res, next) {
           WHERE req_items.item_id NOT IN (
             SELECT ti3.ItemID FROM TradeItem ti3 WHERE ti3.TradeID = t.ID
           )
-        );
+        ) LIMIT 1;
       `,
       [id1, id2, item_ids]
     );

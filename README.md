@@ -56,7 +56,20 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
         "accepted": false,
         "item_ids": [101, 102, 103]
       }```
-  - id1: initiator, id2: receiver
+  - Example output:
+    - ```{
+          "message": "Trade updated successfully",
+          "trade": {
+              "id": 10,
+              "account1": 4,
+              "account2": 2,
+              "accepted": true,
+              "items": [
+                  4,
+                  2
+              ]
+          }
+      }```
   - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
   - If the trade does not exist: creates a new trade entry with the accepted field as false
 
