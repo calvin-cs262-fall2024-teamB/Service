@@ -45,7 +45,7 @@ app.put('/account', updateAccount);
 app.get('/market/:id', readMarket); //Fetches all of the items not owned by a user
 app.get('/items/:id', readAccountItems); //Fetches all of the items owned by a user
 app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
-app.get('/updateTrades/:id1/:id2', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
+app.put('/updateTrades/:id1/:id2', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
 app.post('/items', createItem); //creates a new item
 app.put('/items', updateItem); //updates the field of an item
 
@@ -354,43 +354,95 @@ function readTrades(req, res, next) {
 }
 
 async function createOrUpdateTrade(req, res, next) {
-  const { id1, id2 } = req.params; // Extract user IDs from route parameters
+  const { id1, id2, item_ids } = req.body; // Extract user IDs and item IDs from request body
 
   if (!id1 || !id2) {
     return res.status(400).send({ message: 'Invalid or missing user IDs' });
   }
+  if (!Array.isArray(item_ids) || item_ids.length === 0) {
+    return res.status(400).send({ message: 'Invalid or missing item IDs' });
+  }
 
   try {
-    //Check if a trade already exists between the two users
+    //Check if a trade already exists between the two users with the items above
     const existingTrade = await db.oneOrNone(
-      `SELECT * FROM Trade 
-       WHERE (Account1 = $1 AND Account2 = $2) 
-          OR (Account1 = $2 AND Account2 = $1);`,
-      [id1, id2]
+      `
+      SELECT t.*
+      FROM Trade t
+      JOIN TradeItem ti ON t.ID = ti.TradeID
+      WHERE 
+        ((t.Account1 = $1 AND t.Account2 = $2) OR (t.Account1 = $2 AND t.Account2 = $1))
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM TradeItem ti2 
+          WHERE ti2.TradeID = t.ID
+            AND ti2.ItemID NOT IN ($3:csv)
+        )
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM UNNEST($3::int[]) AS req_items(item_id)
+          WHERE req_items.item_id NOT IN (
+            SELECT ti3.ItemID FROM TradeItem ti3 WHERE ti3.TradeID = t.ID
+          )
+        );
+      `,
+      [id1, id2, item_ids]
     );
+    
+    let tradeId;
 
     if (existingTrade) {
-      //If a trade exists, update its Accepted field to true
+      // Update the existing trade
       const updatedTrade = await db.one(
         `UPDATE Trade 
          SET Accepted = true 
-         WHERE (Account1 = $1 AND Account2 = $2) 
-            OR (Account1 = $2 AND Account2 = $1) 
+         WHERE ID = $1 
          RETURNING *;`,
-        [id1, id2]
+        [existingTrade.id]
       );
+      tradeId = updatedTrade.id;
 
-      res.status(200).send({ message: 'Trade updated successfully', trade: updatedTrade });
+      res.status(200).send({
+        message: 'Trade updated successfully',
+        trade: {
+          id: tradeId,
+          account1: id1,
+          account2: id2,
+          accepted: true,
+          items: item_ids,
+        },
+      });
     } else {
-      //If no trade exists, create a new trade with Accepted = false
+      // Create a new trade
       const newTrade = await db.one(
         `INSERT INTO Trade (Account1, Account2, Accepted) 
          VALUES ($1, $2, $3) 
          RETURNING *;`,
         [id1, id2, false]
-      );  
+      );
+      tradeId = newTrade.id;
 
-      res.status(201).send({ message: 'Trade created successfully', trade: newTrade });
+      // Insert trade items
+      const tradeItemQueries = item_ids.map((itemId) =>
+        db.none(
+          `INSERT INTO TradeItem (TradeID, ItemID) 
+           VALUES ($1, $2);`,
+          [tradeId, itemId]
+        )
+      );
+
+      await Promise.all(tradeItemQueries);
+
+      res.status(201).send({
+        message: 'Trade created successfully',
+        trade: {
+          id: tradeId,
+          account1: id1,
+          account2: id2,
+          accepted: false,
+          items: item_ids,
+        },
+      });
     }
   } catch (err) {
     next(err);

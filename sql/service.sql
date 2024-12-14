@@ -6,6 +6,7 @@
 -- Drop previous versions of the tables if they exist, in reverse order of foreign keys.
 DROP TABLE IF EXISTS ChatMessage;
 DROP TABLE IF EXISTS LikeSave;
+DROP TABLE IF EXISTS TradeItem;
 DROP TABLE IF EXISTS Trade;
 DROP TABLE IF EXISTS RatingReview;
 DROP TABLE IF EXISTS AccountTag;
@@ -74,10 +75,10 @@ CREATE TABLE ItemLookingFor (
 
 -- TRADE SECTION -------------------------------------------------------------
 CREATE TABLE Trade (
+    ID SERIAL PRIMARY KEY,
     Account1 integer REFERENCES Account(ID),
     Account2 integer REFERENCES Account(ID),
-    Accepted boolean,
-    PRIMARY KEY (Account1, Account2)
+    Accepted boolean
 );
 
 CREATE TABLE ChatMessage (
@@ -86,6 +87,12 @@ CREATE TABLE ChatMessage (
     Content text,
     TimeSent TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (Account1, Account2, TimeSent)
+);
+
+CREATE TABLE TradeItem (
+    TradeID integer REFERENCES Trade(ID),
+    ItemID integer REFERENCES Item(ID),
+    PRIMARY KEY (TradeID, ItemID)
 );
 
 CREATE TABLE RatingReview (

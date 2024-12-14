@@ -48,7 +48,14 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 - Trade fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id
   - id of account associated with trade
-- Trade Updating: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/updateTrades/:id1/:id2
+- Trade Updating: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/updateTrades/
+  - Example input:
+    - ```{
+        "account1_id": 1,
+        "account2_id": 2,
+        "accepted": false,
+        "item_ids": [101, 102, 103]
+      }```
   - id1: initiator, id2: receiver
   - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
   - If the trade does not exist: creates a new trade entry with the accepted field as false
