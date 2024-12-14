@@ -4,13 +4,32 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 - login authentication: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login              
   - takes in the email and (...plaintext) password from the json body 
+- account creation: POST bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/account
+  - Example Input
+```    {
+        "message": "Account created successfully.",
+        "account": {
+            "id": 11,
+            "emailaddress": "testing@abc.com",
+            "name": "testing TESTING"
+        }
+    }```
+  - Example Output
+```    {
+        "message": "Account created successfully.",
+        "account": {
+            "id": 11,
+            "emailaddress": "testing@abc.com",
+            "name": "testing TESTING"
+        }
+    }```
 
 - Market item fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/market/:id
 
 - User Items: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items/:id
 - User Item Creation: /items, { ownerAccount, name, description, location, imageData, itemTags, lookingForTags } in request body, first 4 fields required.
   - Example input:
-    - {
+    - ```{
         "ownerAccount": 1,
         "name": "Placeholder Item",
         "description": "This is a sample item for testing purposes.",
@@ -23,7 +42,7 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
         ],
         "itemTags": ["toys", "games"],
         "lookingForTags": ["decor", "kitchenware"]
-      }
+      }```
 
 - Update Item: /items, { id, name, description, location, itemTags, lookingForTags, imageData } in request body, only ID required
 
@@ -93,6 +112,16 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 ]
 ```
 
+### Example response of createUser
+```{
+    "message": "Account created successfully.",
+    "account": {
+        "id": 11,
+        "emailaddress": "testing@abc.com",
+        "name": "testing TESTING"
+    }
+}```
+
 # Database Schema
 
 ## Account Table
@@ -103,7 +132,8 @@ Stores user account information.
 | ID             | integer      | PRIMARY KEY               | Unique identifier for each account.      |
 | EmailAddress   | varchar(50)  | NOT NULL                  | Email address of the account holder.     |
 | Name           | varchar(50)  |                           | Name of the account holder.              |
-| Password       | varchar(50)  |                           | Encrypted or hashed password for the account. |
+| Location       | point        |                           | Location of the account.                 |
+| Password       | varchar(255) | NOT NULL                  | Encrypted or hashed password for the account.|
 
 ---
 
