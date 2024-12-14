@@ -2,145 +2,147 @@
 App service repo. More details can be found [here](https://github.com/calvin-cs262-fall2024-teamB/Project)
 Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
-- login authentication: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login              
-  - takes in the email and (...plaintext) password from the json body 
-- account creation: POST bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/account
-  - Example Input
-```    {
+- **Login Authentication:**  
+  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login`  
+  - Takes in the email and plaintext password from the JSON body.
+
+- **Account Creation:**  
+  `POST bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/account`  
+  - **Example Input:**
+    ```json
+    {
+        "emailaddress": "testing@abc.com",
+        "name": "testing TESTING"
+    }
+    ```
+  - **Example Output:**
+    ```json
+    {
         "message": "Account created successfully.",
         "account": {
             "id": 11,
             "emailaddress": "testing@abc.com",
             "name": "testing TESTING"
         }
-    }```
-  - Example Output
-```    {
-        "message": "Account created successfully.",
-        "account": {
-            "id": 11,
-            "emailaddress": "testing@abc.com",
-            "name": "testing TESTING"
-        }
-    }```
+    }
+    ```
 
-- Market item fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/market/:id
+- **Market Item Fetching:**  
+  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/market/:id`
 
-- User Items: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items/:id
-- User Item Creation: /items, { ownerAccount, name, description, location, imageData, itemTags, lookingForTags } in request body, first 4 fields required.
-  - Example input:
-    - ```{
+- **User Items:**  
+  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items/:id`
+
+### Example Outputs of `readMarket` and `readAccount Items`:
+```json
+[
+    {
+        "itemid": 2,
+        "itemownerid": 2,
+        "itemname": "Sofa",
+        "itemdescription": "A comfortable 3-seater sofa",
+        "itemlocation": {
+            "x": 22.34,
+            "y": 45.67
+        },
+        "dateposted": "2024-11-02T15:00:00.000Z",
+        "itemtags": ["Furniture"],
+        "lookingfortags": ["Free", "Furniture"]
+    },
+    {
+        "itemid": 10,
+        "itemownerid": 2,
+        "itemname": "Dining Table",
+        "itemdescription": "A large wooden dining table, 6 seats",
+        "itemlocation": {
+            "x": 37.22,
+            "y": 20.33
+        },
+        "dateposted": "2024-11-10T20:00:00.000Z",
+        "itemtags": ["Furniture"],
+        "lookingfortags": [null]
+    }
+]
+```
+
+- **User Item Creation:**  
+  Endpoint: `/items`  
+  - Request body: `{ ownerAccount, name, description, location, imageData, itemTags, lookingForTags }`  
+    (first 4 fields required)  
+  - **Example Input:**
+    ```json
+    {
         "ownerAccount": 1,
         "name": "Placeholder Item",
         "description": "This is a sample item for testing purposes.",
         "location": "(40.7128, -74.0060)",
         "imageData": [
-          {
-            "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
-            "description": "Placeholder image for testing."
-          }
+            {
+                "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+                "description": "Placeholder image for testing."
+            }
         ],
         "itemTags": ["toys", "games"],
         "lookingForTags": ["decor", "kitchenware"]
-      }```
+    }
+    ```
 
-- Update Item: /items, { id, name, description, location, itemTags, lookingForTags, imageData } in request body, only ID required
+- **Update Item:**  
+  Endpoint: `/items`  
+  - Request body: `{ id, name, description, location, itemTags, lookingForTags, imageData }` (only ID is required).
 
-- Trade fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id
-  - id of account associated with trade
-- Trade Updating: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/updateTrades/
-  - Example input:
-    - ```{
+- **Trade Fetching:**  
+  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id`  
+  - ID of the account associated with the trade.
+  - **Example Output** for id=2
+    ```json
+    [
+      {
+        "tradeid": 1,
+        "user1id": 1,
+        "user2id": 2,
+        "otheruserid": 1,
+        "tradeaccepted": true
+      },
+      {
+        "tradeid": 4,
+        "user1id": 2,
+        "user2id": 6,
+        "otheruserid": 6,
+        "tradeaccepted": false
+      }
+    ]
+    ```
+
+- **Trade Updating:**  
+  Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/updateTrades/`  
+  - **Example Input:**
+    ```json
+    {
         "account1_id": 1,
         "account2_id": 2,
         "accepted": false,
         "item_ids": [101, 102, 103]
-      }```
-  - Example output:
-    - ```{
-          "message": "Trade updated successfully",
-          "trade": {
-              "id": 10,
-              "account1": 4,
-              "account2": 2,
-              "accepted": true,
-              "items": [
-                  4,
-                  2
-              ]
-          }
-      }```
-  - If the trade exists (in either direction): updates the accepted field to true (both users are interested)
-  - If the trade does not exist: creates a new trade entry with the accepted field as false
-
-### Example Outputs of readMarket and readAccount Items:
-```
-[
-  {
-    "itemid": 2,
-    "itemownerid": 2,
-    "itemname": "Sofa",
-    "itemdescription": "A comfortable 3-seater sofa",
-    "itemlocation": {
-      "x": 22.34,
-      "y": 45.67
-    },
-    "dateposted": "2024-11-02T15:00:00.000Z",
-    "itemtags": [
-      "Furniture"
-    ],
-    "lookingfortags": [
-      "Free",
-      "Furniture"
-    ]
-  },
-  {
-    "itemid": 10,
-    "itemownerid": 2,
-    "itemname": "Dining Table",
-    "itemdescription": "A large wooden dining table, 6 seats",
-    "itemlocation": {
-      "x": 37.22,
-      "y": 20.33
-    },
-    "dateposted": "2024-11-10T20:00:00.000Z",
-    "itemtags": [
-      "Furniture"
-    ],
-    "lookingfortags": [null]
-  }
-]
-```
-
-### Example Output of readTrades (for userID=2):
-```
-[
-  {
-    "tradeid": 1,
-    "user1id": 1,
-    "user2id": 2,
-    "otheruserid": 1,
-    "tradeaccepted": true
-  },
-  {
-    "tradeid": 4,
-    "user1id": 2,
-    "user2id": 6,
-    "otheruserid": 6,
-    "tradeaccepted": false
-  }
-]
-```
-
-### Example response of createUser
-```{
-    "message": "Account created successfully.",
-    "account": {
-        "id": 11,
-        "emailaddress": "testing@abc.com",
-        "name": "testing TESTING"
     }
-}```
+    ```
+  - **Example Output:**
+    ```json
+    {
+        "message": "Trade updated successfully",
+        "trade": {
+            "id": 10,
+            "account1": 4,
+            "account2": 2,
+            "accepted": true,
+            "items": [4, 2]
+        }
+    }
+    ```
+
+    - **Behavior:**
+      - If the trade exists (in either direction): Updates the `accepted` field to `true` (both users are interested).
+      - If the trade does not exist: Creates a new trade entry with the `accepted` field as `false`.
+
 
 # Database Schema
 
