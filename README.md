@@ -24,8 +24,8 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
         "itemTags": ["toys", "games"],
         "lookingForTags": ["decor", "kitchenware"]
       }
-
 - Update Item: /items, { id, name, description, location, itemTags, lookingForTags, imageData } in request body, only ID required
+- Delete Item: /items, {id} in request body
 
 - Trade fetching: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id
   - id of account associated with trade
