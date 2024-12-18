@@ -4,15 +4,28 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 - **Login Authentication:**  
   `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login`  
-  - Takes in the email and plaintext password from the JSON body.
+  - **Example Input:**
+    ```json
+    {
+        "email": "tester@gmail.com",
+        "password": "tester"
+    }
+    ```
+  - **Example Output:**
+    ```json
+    {
+        "message": "Login successful"
+    }
+    ```
 
 - **Account Creation:**  
   `POST bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/account`  
   - **Example Input:**
     ```json
     {
-        "emailaddress": "testing@abc.com",
-        "name": "testing TESTING"
+        "name": "tester",
+        "email": "tester@gmail.com",
+        "password": "tester"
     }
     ```
   - **Example Output:**
@@ -35,7 +48,35 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 ### Example Outputs of `readMarket` and `readAccount Items`:
 ```json
+### Example Outputs of `readMarket` and `readAccount Items`:
+```json
 [
+    {
+        "itemid": 2,
+        "itemownerid": 2,
+        "itemname": "Sofa",
+        "itemdescription": "A comfortable 3-seater sofa",
+        "itemlocation": {
+            "x": 22.34,
+            "y": 45.67
+        },
+        "dateposted": "2024-11-02T15:00:00.000Z",
+        "itemtags": ["Furniture"],
+        "lookingfortags": ["Free", "Furniture"]
+    },
+    {
+        "itemid": 10,
+        "itemownerid": 2,
+        "itemname": "Dining Table",
+        "itemdescription": "A large wooden dining table, 6 seats",
+        "itemlocation": {
+            "x": 37.22,
+            "y": 20.33
+        },
+        "dateposted": "2024-11-10T20:00:00.000Z",
+        "itemtags": ["Furniture"],
+        "lookingfortags": [null]
+    }
     {
         "itemid": 2,
         "itemownerid": 2,
@@ -113,6 +154,54 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
       }
     ]
     ```
+- **User Item Creation:**  
+  Endpoint: `/items`  
+  - Request body: `{ ownerAccount, name, description, location, imageData, itemTags, lookingForTags }`  
+    (first 4 fields required)  
+  - **Example Input:**
+    ```json
+    {
+        "ownerAccount": 1,
+        "name": "Placeholder Item",
+        "description": "This is a sample item for testing purposes.",
+        "location": "(40.7128, -74.0060)",
+        "imageData": [
+            {
+                "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+                "description": "Placeholder image for testing."
+            }
+        ],
+        "itemTags": ["toys", "games"],
+        "lookingForTags": ["decor", "kitchenware"]
+    }
+    ```
+
+- **Update Item:**  
+  Endpoint: `/items`  
+  - Request body: `{ id, name, description, location, itemTags, lookingForTags, imageData }` (only ID is required).
+
+- **Trade Fetching:**  
+  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id`  
+  - ID of the account associated with the trade.
+  - **Example Output** for id=2
+    ```json
+    [
+      {
+        "tradeid": 1,
+        "user1id": 1,
+        "user2id": 2,
+        "otheruserid": 1,
+        "tradeaccepted": true
+      },
+      {
+        "tradeid": 4,
+        "user1id": 2,
+        "user2id": 6,
+        "otheruserid": 6,
+        "tradeaccepted": false
+      }
+    ]
+    ```
 
 - **Trade Updating:**  
   Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/updateTrades/`  
@@ -142,7 +231,6 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
     - **Behavior:**
       - If the trade exists (in either direction): Updates the `accepted` field to `true` (both users are interested).
       - If the trade does not exist: Creates a new trade entry with the `accepted` field as `false`.
-
 
 # Database Schema
 
