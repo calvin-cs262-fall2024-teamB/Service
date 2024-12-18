@@ -178,7 +178,11 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 - **Update Item:**  
   Endpoint: `/items`  
-  - Request body: `{ id, name, description, location, itemTags, lookingForTags, imageData }` (only ID is required).
+  - Request body: `{ id, name, description, location, imageData, itemTags, lookingForTags }` (only ID is required).
+
+- **Delete Item:**  
+  Endpoint: `/items`  
+  - Request body: `{ id }`
 
 - **Trade Fetching:**  
   `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id`  
