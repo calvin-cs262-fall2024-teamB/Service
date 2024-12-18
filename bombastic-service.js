@@ -46,6 +46,7 @@ app.get('/trades/:id', readTrades); //Fetches all of the trades involving a user
 app.get('/updateTrades/:id1/:id2', createOrUpdateTrade) //creates a new trade involving both users or updates the accepted field to true
 app.post('/items', createItem); //creates a new item
 app.put('/items', updateItem); //updates the field of an item
+app.delete('/items', deleteItem); //deletes an item given an id
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
@@ -373,6 +374,46 @@ async function updateItem(req, res, next) {
 
     // Return a success response
     res.status(200).send({ message: 'Item updated successfully.' });
+  } catch (err) {
+    next(err); // Pass the error to error-handling middleware
+  }
+}
+
+async function deleteItem(req, res, next) {
+  const { id } = req.body;
+
+  // Validate the item ID
+  if (!id) {
+    return res.status(400).send({ message: 'Invalid or missing item ID.' });
+  }
+
+  try {
+    const itemExists = await db.oneOrNone('SELECT 1 FROM Item WHERE ID = $1', [id]);
+    if (!itemExists) {
+      return res.status(404).send({ message: 'Item not found.' });
+    }
+
+    await db.tx(async (t) => {
+      // clear item tags      
+      await t.none(`DELETE FROM ItemTag WHERE ItemID = $1;`, [id]);
+
+      // clear looking for tags for the item
+      await t.none(`DELETE FROM ItemLookingFor WHERE ItemID = $1;`, [id]);
+
+      // clear images for the item
+      await t.none(`DELETE FROM ItemImage WHERE ItemID = $1;`, [id]);
+
+      // clear associated likes for the item
+      await t.none(`DELETE FROM LikeSave WHERE ItemID = $1;`, [id]);
+
+      // delete item
+      await t.none(
+        `DELETE FROM Item WHERE ID = $1;`, [id]
+      );    
+    });
+
+    // Return a success response
+    res.status(200).send({ message: 'Item deleted successfully.' });
   } catch (err) {
     next(err); // Pass the error to error-handling middleware
   }
