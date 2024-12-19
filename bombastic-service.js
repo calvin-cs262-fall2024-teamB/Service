@@ -620,6 +620,9 @@ async function deleteItem(req, res, next) {
       // clear looking for tags for the item
       await t.none(`DELETE FROM ItemLookingFor WHERE ItemID = $1;`, [id]);
 
+      // clear associated linking trade items
+      await t.none(`DELETE FROM TradeItem WHERE ItemID = $1;`, [id]);
+
       // clear images for the item
       await t.none(`DELETE FROM ItemImage WHERE ItemID = $1;`, [id]);
 
