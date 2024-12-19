@@ -3,7 +3,7 @@ App service repo. More details can be found [here](https://github.com/calvin-cs2
 Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 
 - **Login Authentication:**  
-  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login`  
+  `POST bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/login`  
   - **Example Input:**
     ```json
     {
@@ -46,8 +46,6 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 - **User Items:**  
   `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items/:id`
 
-### Example Outputs of `readMarket` and `readAccount Items`:
-```json
 ### Example Outputs of `readMarket` and `readAccount Items`:
 ```json
 [
@@ -107,7 +105,7 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
 ```
 
 - **User Item Creation:**  
-  Endpoint: `/items`  
+  Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items`  
   - Request body: `{ ownerAccount, name, description, location, imageData, itemTags, lookingForTags }`  
     (first 4 fields required)  
   - **Example Input:**
@@ -129,59 +127,11 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
     ```
 
 - **Update Item:**  
-  Endpoint: `/items`  
+  Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items`  
   - Request body: `{ id, name, description, location, itemTags, lookingForTags, imageData }` (only ID is required).
 
-- **Trade Fetching:**  
-  `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/trades/:id`  
-  - ID of the account associated with the trade.
-  - **Example Output** for id=2
-    ```json
-    [
-      {
-        "tradeid": 1,
-        "user1id": 1,
-        "user2id": 2,
-        "otheruserid": 1,
-        "tradeaccepted": true
-      },
-      {
-        "tradeid": 4,
-        "user1id": 2,
-        "user2id": 6,
-        "otheruserid": 6,
-        "tradeaccepted": false
-      }
-    ]
-    ```
-- **User Item Creation:**  
-  Endpoint: `/items`  
-  - Request body: `{ ownerAccount, name, description, location, imageData, itemTags, lookingForTags }`  
-    (first 4 fields required)  
-  - **Example Input:**
-    ```json
-    {
-        "ownerAccount": 1,
-        "name": "Placeholder Item",
-        "description": "This is a sample item for testing purposes.",
-        "location": "(40.7128, -74.0060)",
-        "imageData": [
-            {
-                "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
-                "description": "Placeholder image for testing."
-            }
-        ],
-        "itemTags": ["toys", "games"],
-        "lookingForTags": ["decor", "kitchenware"]
-    }
-    ```
-
-- **Update Item:**  
-  Endpoint: `/items`  
-  - Request body: `{ id, name, description, location, imageData, itemTags, lookingForTags }` (only ID is required).
-
 - **Delete Item:**  
-  Endpoint: `/items`  
+  Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/items`  
   - Request body: `{ id }`
 
 - **Trade Fetching:**  
@@ -190,20 +140,44 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
   - **Example Output** for id=2
     ```json
     [
-      {
-        "tradeid": 1,
-        "user1id": 1,
-        "user2id": 2,
-        "otheruserid": 1,
-        "tradeaccepted": true
-      },
-      {
-        "tradeid": 4,
-        "user1id": 2,
-        "user2id": 6,
-        "otheruserid": 6,
-        "tradeaccepted": false
-      }
+        {
+            "tradeid": 7,
+            "user1id": 1,
+            "user2id": 2,
+            "otheruserid": 1,
+            "tradeaccepted": true,
+            "tradeitems": [
+                {
+                    "itemid": 2,
+                    "itemownerid": 2,
+                    "itemname": "Sofa"
+                },
+                {
+                    "itemid": 1,
+                    "itemownerid": 1,
+                    "itemname": "Laptop"
+                }
+            ]
+        },
+        {
+            "tradeid": 9,
+            "user1id": 1,
+            "user2id": 2,
+            "otheruserid": 1,
+            "tradeaccepted": false,
+            "tradeitems": [
+                {
+                    "itemid": 1,
+                    "itemownerid": 1,
+                    "itemname": "Laptop"
+                },
+                {
+                    "itemid": 3,
+                    "itemownerid": 3,
+                    "itemname": "Programming 101"
+                }
+            ]
+        },
     ]
     ```
 
@@ -235,6 +209,43 @@ Domain: bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net
     - **Behavior:**
       - If the trade exists (in either direction): Updates the `accepted` field to `true` (both users are interested).
       - If the trade does not exist: Creates a new trade entry with the `accepted` field as `false`.
+
+- **Message Creation:**  
+  Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/messages`  
+  - **Example Input:**
+    ```json
+    {
+      "id1": 1,
+      "id2": 2,
+      "content": "Hello! How are you?"
+    }
+    ```
+- **Message Reading:**  
+  Endpoint: `bombasticweb-dmenc3dmg9hhcxgk.canadaeast-01.azurewebsites.net/messages`  
+  - **Example Input:**
+    ```json
+    {
+      "id1": 1,
+      "id2": 2,
+    }
+    ```
+  - **Example Output:**
+    ```json
+    [
+      {
+        "Account1": 1,
+        "Account2": 2,
+        "Content": "Hello! How are you?",
+        "TimeSent": "2024-12-01T15:30:00Z"
+      },
+      {
+        "Account1": 2,
+        "Account2": 1,
+        "Content": "I’m doing well, thanks!",
+        "TimeSent": "2024-12-01T15:31:00Z"
+      }
+    ]
+    ```
 
 # Database Schema
 

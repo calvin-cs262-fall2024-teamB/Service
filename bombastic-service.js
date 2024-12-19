@@ -49,6 +49,8 @@ app.put('/updateTrades', createOrUpdateTrade) //creates a new trade involving bo
 app.post('/items', createItem); //creates a new item
 app.put('/items', updateItem); //updates the field of an item
 app.delete('/items', deleteItem); //deletes an item given an id
+app.post('/messages', createMessage) //creates a new message
+app.get('/messages', readMessage) //reades 
 
 app.use(router);
 app.listen(port, () => console.log(`Listening on port ${port}`));
@@ -333,9 +335,11 @@ function readHelloMessage(req, res) {
 
 function readTrades(req, res, next) {
   const id = req.params.id;
+
   if (!id) {
     return res.status(400).send({ message: 'Invalid or missing ID' });
   }
+
   db.any(`
     SELECT 
       t.ID AS TradeID,
@@ -345,14 +349,34 @@ function readTrades(req, res, next) {
         WHEN t.Account1 = $1 THEN t.Account2
         WHEN t.Account2 = $1 THEN t.Account1
       END AS OtherUserID,
-      t.Accepted AS TradeAccepted
+      t.Accepted AS TradeAccepted,
+      json_agg(
+        json_build_object(
+          'itemid', i.ID,
+          'itemownerid', i.OwnerAccount,
+          'itemname', i.Name
+        )
+      ) AS TradeItems
     FROM 
       Trade t
+    LEFT JOIN 
+      TradeItem ti ON t.ID = ti.TradeID
+    LEFT JOIN 
+      Item i ON ti.ItemID = i.ID
     WHERE 
-      t.Account1 = $1 OR t.Account2 = $1;`, [id])
-    .then((data) => returnDataOr404(res, data))
+      t.Account1 = $1 OR t.Account2 = $1
+    GROUP BY 
+      t.ID, t.Account1, t.Account2, t.Accepted
+  `, [id])
+    .then((data) => {
+      if (data.length === 0) {
+        return res.status(404).send({ message: 'No trades found' });
+      }
+      res.status(200).json(data);
+    })
     .catch(next);
-}
+};
+
 
 async function createOrUpdateTrade(req, res, next) {
   const { id1, id2, item_ids } = req.body; // Extract user IDs and item IDs from request body
@@ -639,5 +663,48 @@ async function deleteItem(req, res, next) {
     res.status(200).send({ message: 'Item deleted successfully.' });
   } catch (err) {
     next(err); // Pass the error to error-handling middleware
+  }
+}
+
+async function createMessage(req, res, next) {
+  const { id1, id2, content } = req.body;
+  if (!id1 || !id2 || !content) {
+    return res.status(400).send({ message: 'Invalid or missing parameters' });
+  }
+
+  try {
+    await db.none(
+      `INSERT INTO ChatMessage (Account1, Account2, Content) 
+       VALUES ($1, $2, $3)`,
+      [id1, id2, content]
+    );
+    res.status(201).send({ message: 'Message created successfully' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function readMessage(req, res, next){
+  const {id1, id2} = req.body;
+
+  if (!id1 || !id2) {
+    return res.status(400).send({ message: 'Invalid or missing IDs' });
+  }
+
+  try {
+    const messages = await db.any(
+      `SELECT 
+         Account1, 
+         Account2, 
+         Content, 
+         TimeSent 
+       FROM ChatMessage 
+       WHERE (Account1 = $1 AND Account2 = $2) OR (Account2 = $1 AND Account1 = $2)
+       ORDER BY TimeSent DESC`,
+      [id1, id2]
+    );
+    res.status(200).send(messages);
+  } catch (error) {
+    next(error);
   }
 }
